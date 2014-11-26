@@ -40,7 +40,6 @@ module axi_ArbitrationTree
     
     
     logic [LOG_MASTER-1:0]			RR_FLAG;
-    logic [LOG_MASTER-1:0]			RR_FLAG_FLIPPED;
     
     logic [TOTAL_N_MASTER-1:0]			data_req_int;
     logic [TOTAL_N_MASTER-1:0][AUX_WIDTH-1:0]	data_AUX_int;
@@ -52,19 +51,6 @@ module axi_ArbitrationTree
     
     genvar j,k,index;
     integer i;
-
-
-
-    // FLIP THE ROUND ROBIN FLAG
-    always_comb
-    begin
-	
-	for(i=0; i<LOG_MASTER; i++)
-	begin
-	  RR_FLAG_FLIPPED[i] = RR_FLAG[LOG_MASTER-i-1];
-	end
-	
-    end
   
   
   
@@ -123,7 +109,7 @@ module axi_ArbitrationTree
 		    // ---------------- FAN IN PRIMITIVE  -------------------------
 		    axi_FanInPrimitive_Req #( .AUX_WIDTH(AUX_WIDTH), .ID_WIDTH(ID_WIDTH) ) FAN_IN_REQ
 		    (
-			.RR_FLAG(RR_FLAG_FLIPPED),
+			.RR_FLAG(RR_FLAG),
 			// LEFT SIDE"
 			.data_AUX0_i (  data_AUX_int[0]  ),
 			.data_AUX1_i (  data_AUX_int[1]  ),  
@@ -164,7 +150,7 @@ module axi_ArbitrationTree
 		      begin : LAST_NODE
 			  axi_FanInPrimitive_Req #( .AUX_WIDTH(AUX_WIDTH), .ID_WIDTH(ID_WIDTH) ) FAN_IN_REQ
 			  (
-			  .RR_FLAG(RR_FLAG_FLIPPED[LOG_MASTER-j-1]),
+			  .RR_FLAG(RR_FLAG[LOG_MASTER-j-1]),
 			  // LEFT SIDE
 			  .data_AUX0_i  (  data_AUX_LEVEL[2*k]    ),
 			  .data_AUX1_i  (  data_AUX_LEVEL[2*k+1]  ),
@@ -190,7 +176,7 @@ module axi_ArbitrationTree
 			      begin : MIDDLE_NODES // START of MIDDLE LEVELS Nodes   
 				  axi_FanInPrimitive_Req #( .AUX_WIDTH(AUX_WIDTH), .ID_WIDTH(ID_WIDTH) ) FAN_IN_REQ
 				  (
-				  .RR_FLAG(RR_FLAG_FLIPPED[LOG_MASTER-j-1]),
+				  .RR_FLAG(RR_FLAG[LOG_MASTER-j-1]),
 				  // LEFT SIDE
 				  .data_AUX0_i(data_AUX_LEVEL[((2**j)*2-2) + 2*k]),
 				  .data_AUX1_i(data_AUX_LEVEL[((2**j)*2-2) + 2*k +1]),
@@ -217,7 +203,7 @@ module axi_ArbitrationTree
 			      begin : LEAF_NODES  // START of FIRST LEVEL Nodes (LEAF)
 				  axi_FanInPrimitive_Req #( .AUX_WIDTH(AUX_WIDTH), .ID_WIDTH(ID_WIDTH) ) FAN_IN_REQ
 				  (
-				  .RR_FLAG(RR_FLAG_FLIPPED[LOG_MASTER-j-1]),
+				  .RR_FLAG(RR_FLAG[LOG_MASTER-j-1]),
 				  // LEFT SIDE
 				  .data_AUX0_i(data_AUX_int[2*k]),
 				  .data_AUX1_i(data_AUX_int[2*k+1]),
