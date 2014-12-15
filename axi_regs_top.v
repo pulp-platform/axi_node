@@ -86,6 +86,7 @@ module axi_regs_top
 
   wire wdata_done_rise;
   wire awaddr_done_rise;
+  wire write_en;
   
   
   logic [NUM_REGS-1:0][C_S_AXI_DATA_WIDTH/8-1:0][7:0]		cfg_reg;
