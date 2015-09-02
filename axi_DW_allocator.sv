@@ -1,58 +1,100 @@
-`include "defines.v"
+// ============================================================================= //
+//                           COPYRIGHT NOTICE                                    //
+// Copyright 2014 Multitherman Laboratory - University of Bologna                //
+// ALL RIGHTS RESERVED                                                           //
+// This confidential and proprietary software may be used only as authorised by  //
+// a licensing agreement from Multitherman Laboratory - University of Bologna.   //
+// The entire notice above must be reproduced on all authorized copies and       //
+// copies may only be made to the extent permitted by a licensing agreement from //
+// Multitherman Laboratory - University of Bologna.                              //
+// ============================================================================= //
+
+// ============================================================================= //
+// Company:        Multitherman Laboratory @ DEIS - University of Bologna        //
+//                    Viale Risorgimento 2 40136                                 //
+//                    Bologna - fax 0512093785 -                                 //
+//                                                                               //
+// Engineer:       Igor Loi - igor.loi@unibo.it                                  //
+//                                                                               //
+//                                                                               //
+// Additional contributions by:                                                  //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+// Create Date:    01/02/2014                                                    //
+// Design Name:    AXI 4 INTERCONNECT                                            //
+// Module Name:    axi_DW_allocator                                              //
+// Project Name:   PULP                                                          //
+// Language:       SystemVerilog                                                 //
+//                                                                               //
+// Description:   Data Write Allocator: it selects one write data channel among  //
+//                the available slave ports (multiplexer). The routing info      //
+//                are provided by the data ID previusly stored during the addr   //
+//                phase.                                                         //
+//                                                                               //
+// Revision:                                                                     //
+// Revision v0.1 - 01/02/2014 : File Created                                     //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+// ============================================================================= //
 
 module axi_DW_allocator 
 #(
-    parameter			AXI_USER_W     = 6,
-    parameter 			N_TARG_PORT    = 7,
-    parameter      		LOG_N_TARG     = `log2(N_TARG_PORT-1),
-    parameter			FIFO_DEPTH     = 8,
+    parameter                   AXI_USER_W     = 6,
+    parameter                   N_TARG_PORT    = 7,
+    parameter                   LOG_N_TARG     = $clog2(N_TARG_PORT),
+    parameter                   FIFO_DEPTH     = 8,
     
-    parameter			AXI_DATA_W     = 64,
-    parameter			AXI_NUMBYTES   = AXI_DATA_W/8
+    parameter                   AXI_DATA_W     = 64,
+    parameter                   AXI_NUMBYTES   = AXI_DATA_W/8
 )
 (
-  input  logic								clk,
-  input  logic								rst_n,
+  input  logic                                                          clk,
+  input  logic                                                          rst_n,
   
   //AXI write data bus --> Processor Side ----------------------------------------- 
-  input  logic [N_TARG_PORT-1:0] [AXI_DATA_W-1:0]			wdata_i,
-  input  logic [N_TARG_PORT-1:0] [AXI_NUMBYTES-1:0]			wstrb_i,   //1 strobe per byte
-  input  logic [N_TARG_PORT-1:0]					wlast_i,   //last transfer in burst
-  input  logic [N_TARG_PORT-1:0][AXI_USER_W-1:0]			wuser_i,   // User sideband signal
+  input  logic [N_TARG_PORT-1:0] [AXI_DATA_W-1:0]                       wdata_i,
+  input  logic [N_TARG_PORT-1:0] [AXI_NUMBYTES-1:0]                     wstrb_i,   //1 strobe per byte
+  input  logic [N_TARG_PORT-1:0]                                        wlast_i,   //last transfer in burst
+  input  logic [N_TARG_PORT-1:0][AXI_USER_W-1:0]                        wuser_i,   // User sideband signal
   
-  input  logic [N_TARG_PORT-1:0]					wvalid_i,  //master data valid
-  output logic [N_TARG_PORT-1:0]					wready_o,  //slave ready to accept
+  input  logic [N_TARG_PORT-1:0]                                        wvalid_i,  //master data valid
+  output logic [N_TARG_PORT-1:0]                                        wready_o,  //slave ready to accept
   
   
   //AXI write data bus --> Slave Side ----------------------------------------- 
-  output logic  [AXI_DATA_W-1:0]					wdata_o,
-  output logic  [AXI_NUMBYTES-1:0]					wstrb_o,   //1 strobe per byte
-  output logic 								wlast_o,   //last transfer in burst
-  output logic  [AXI_USER_W-1:0]					wuser_o,   // User sideband signal
+  output logic  [AXI_DATA_W-1:0]                                        wdata_o,
+  output logic  [AXI_NUMBYTES-1:0]                                      wstrb_o,   //1 strobe per byte
+  output logic                                                          wlast_o,   //last transfer in burst
+  output logic  [AXI_USER_W-1:0]                                        wuser_o,   // User sideband signal
   
-  output logic 								wvalid_o,  //master data valid
-  input  logic 								wready_i,  //slave ready to accept 
+  output logic                                                          wvalid_o,  //master data valid
+  input  logic                                                          wready_i,  //slave ready to accept 
   
   
   // PUSH Interface to DW allocator
-  input  logic								push_ID_i,
-  input  logic [LOG_N_TARG+N_TARG_PORT-1:0]				ID_i, // {BIN_ID, OH_ID};
-  output logic 								grant_FIFO_ID_o
+  input  logic                                                          push_ID_i,
+  input  logic [LOG_N_TARG+N_TARG_PORT-1:0]                             ID_i, // {BIN_ID, OH_ID};
+  output logic                                                          grant_FIFO_ID_o
 );
 
-localparam	AUX_WIDTH = AXI_DATA_W + AXI_NUMBYTES + 1 + AXI_USER_W;
+localparam      AUX_WIDTH = AXI_DATA_W + AXI_NUMBYTES + 1 + AXI_USER_W;
 
-logic								pop_from_ID_FIFO;
-logic								valid_ID;
-logic [LOG_N_TARG+N_TARG_PORT-1:0]				ID_int;
+logic                                                           pop_from_ID_FIFO;
+logic                                                           valid_ID;
+logic [LOG_N_TARG+N_TARG_PORT-1:0]                              ID_int;
 
-logic [LOG_N_TARG-1:0]						ID_int_BIN;
-logic [N_TARG_PORT-1:0]						ID_int_OH;
+logic [LOG_N_TARG-1:0]                                          ID_int_BIN;
+logic [N_TARG_PORT-1:0]                                         ID_int_OH;
 
-logic [AUX_WIDTH-1:0]						AUX_VECTOR_OUT;
-logic [N_TARG_PORT-1:0][AUX_WIDTH-1:0]				AUX_VECTOR_IN;
+logic [AUX_WIDTH-1:0]                                           AUX_VECTOR_OUT;
+logic [N_TARG_PORT-1:0][AUX_WIDTH-1:0]                          AUX_VECTOR_IN;
 
-enum logic { SINGLE_IDLE, BURST }       			CS, NS;
+enum logic { SINGLE_IDLE, BURST }                               CS, NS;
 
 genvar i;
 
@@ -105,11 +147,11 @@ MASTER_ID_FIFO
   begin : UPDATE_STATE_FSM
       if(rst_n == 1'b0)
       begin
-	CS             <= SINGLE_IDLE;
+        CS             <= SINGLE_IDLE;
       end
       else
       begin
-	CS             <= NS;
+        CS             <= NS;
       end
   end
  
@@ -126,82 +168,82 @@ MASTER_ID_FIFO
       
       case(CS)
       
-	  SINGLE_IDLE : 
-	  begin : CS_IN_SINGLE_IDLE
-		if(valid_ID)
-		begin : valid_ID
-		      wvalid_o   = wvalid_i[ID_int_BIN] ;
-		      wready_o   = {N_TARG_PORT{wready_i}} & ID_int_OH;
-		      
-		      if(wvalid_i[ID_int_BIN] & wready_i)
-		      begin : granted_request
-			if(wlast_i[ID_int_BIN])
-			begin : last_packet
-			  NS               = SINGLE_IDLE;
-			  pop_from_ID_FIFO = 1'b1;
-			end
-			else
-			begin : payload_packet
-			  NS = BURST;
-			  pop_from_ID_FIFO = 1'b0;
-			end
-		      end
-		      else
-		      begin : not_granted_request
-			   NS                 = SINGLE_IDLE;
-			   pop_from_ID_FIFO   = 1'b0;
-		      end
-		end
-		else // not valid ID
-		begin : not_valid_ID
-			   NS                 = SINGLE_IDLE;
-			   pop_from_ID_FIFO   = 1'b0;
-			   wvalid_o           = 1'b0;
-			   wready_o           = '0;
-		end
-	  end
-	  
-	  
-	  
-	  
-	  
-	  
-	  BURST : begin : CS_IN_BUSRT
+          SINGLE_IDLE : 
+          begin : _CS_IN_SINGLE_IDLE
+                if(valid_ID)
+                begin : _valid_ID
+                      wvalid_o   = wvalid_i[ID_int_BIN] ;
+                      wready_o   = {N_TARG_PORT{wready_i}} & ID_int_OH;
+                      
+                      if(wvalid_i[ID_int_BIN] & wready_i)
+                      begin : _granted_request
+                        if(wlast_i[ID_int_BIN])
+                        begin : _last_packet
+                          NS               = SINGLE_IDLE;
+                          pop_from_ID_FIFO = 1'b1;
+                        end
+                        else
+                        begin : _payload_packet
+                          NS = BURST;
+                          pop_from_ID_FIFO = 1'b0;
+                        end
+                      end
+                      else
+                      begin : _not_granted_request
+                           NS                 = SINGLE_IDLE;
+                           pop_from_ID_FIFO   = 1'b0;
+                      end
+                end
+                else // not valid ID
+                begin : _not_valid_ID
+                           NS                 = SINGLE_IDLE;
+                           pop_from_ID_FIFO   = 1'b0;
+                           wvalid_o           = 1'b0;
+                           wready_o           = '0;
+                end
+          end
+          
+          
+          
+          
+          
+          
+          BURST : begin : _CS_IN_BUSRT
 
-		      wvalid_o    = wvalid_i[ID_int_BIN];
-		      wready_o   = {N_TARG_PORT{wready_i}} & ID_int_OH & {N_TARG_PORT{valid_ID}};
-		      
-		      
-		      if(wvalid_i[ID_int_BIN] & wready_i)
-		      begin
-			if(wlast_i[ID_int_BIN])
-			begin
-			  NS               = SINGLE_IDLE;
-			  pop_from_ID_FIFO = 1'b1;
-			end
-			else
-			begin
-			  NS = BURST;
-			  pop_from_ID_FIFO = 1'b0;
-			end
-		      end
-		      else
-		      begin
-			   NS                 = BURST;
-			   pop_from_ID_FIFO   = 1'b0;
-		      end
-		      
-	  end
-	  
-	  default : begin
-			  NS               = SINGLE_IDLE;
-			  pop_from_ID_FIFO = 1'b0;
-			  wvalid_o         = 1'b0;
-			  wready_o          = '0;
-	  end
-	  
-	  endcase
-	  
+                      wvalid_o    = wvalid_i[ID_int_BIN];
+                      wready_o   = {N_TARG_PORT{wready_i}} & ID_int_OH & {N_TARG_PORT{valid_ID}};
+                      
+                      
+                      if(wvalid_i[ID_int_BIN] & wready_i)
+                      begin
+                        if(wlast_i[ID_int_BIN])
+                        begin
+                          NS               = SINGLE_IDLE;
+                          pop_from_ID_FIFO = 1'b1;
+                        end
+                        else
+                        begin
+                          NS = BURST;
+                          pop_from_ID_FIFO = 1'b0;
+                        end
+                      end
+                      else
+                      begin
+                           NS                 = BURST;
+                           pop_from_ID_FIFO   = 1'b0;
+                      end
+                      
+          end
+          
+          default : begin
+                          NS               = SINGLE_IDLE;
+                          pop_from_ID_FIFO = 1'b0;
+                          wvalid_o         = 1'b0;
+                          wready_o          = '0;
+          end
+          
+          endcase
+          
       
   end
   

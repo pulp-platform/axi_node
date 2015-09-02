@@ -1,52 +1,94 @@
+// ============================================================================= //
+//                           COPYRIGHT NOTICE                                    //
+// Copyright 2014 Multitherman Laboratory - University of Bologna                //
+// ALL RIGHTS RESERVED                                                           //
+// This confidential and proprietary software may be used only as authorised by  //
+// a licensing agreement from Multitherman Laboratory - University of Bologna.   //
+// The entire notice above must be reproduced on all authorized copies and       //
+// copies may only be made to the extent permitted by a licensing agreement from //
+// Multitherman Laboratory - University of Bologna.                              //
+// ============================================================================= //
+
+// ============================================================================= //
+// Company:        Multitherman Laboratory @ DEIS - University of Bologna        //
+//                    Viale Risorgimento 2 40136                                 //
+//                    Bologna - fax 0512093785 -                                 //
+//                                                                               //
+// Engineer:       Igor Loi - igor.loi@unibo.it                                  //
+//                                                                               //
+//                                                                               //
+// Additional contributions by:                                                  //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+// Create Date:    01/02/2014                                                    //
+// Design Name:    AXI 4 INTERCONNECT                                            //
+// Module Name:    axi_BR_allocator                                              //
+// Project Name:   PULP                                                          //
+// Language:       SystemVerilog                                                 //
+//                                                                               //
+// Description:   Backward write Allocator: it performs a round robin arbitr     //
+//                between pending write responses from each master port.         //
+//                                                                               // 
+// Revision:                                                                     //
+// Revision v0.1 - 01/02/2014 : File Created                                     //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+// ============================================================================= //
+
 `include "defines.v"
 
 module axi_BR_allocator 
 #(
-    parameter			AXI_USER_W     = 6,
-    parameter 			N_INIT_PORT    = 1,
-    parameter 			N_TARG_PORT    = 7,
-    parameter			AXI_DATA_W     = 64,
-    parameter  			AXI_ID_IN      = 16,      
-    parameter      		LOG_N_TARG     = `log2(N_TARG_PORT-1),
-    parameter      		LOG_N_INIT     = `log2(N_INIT_PORT-1),
-    parameter  			AXI_ID_OUT     = AXI_ID_IN + `log2(N_TARG_PORT-1)
+    parameter                   AXI_USER_W     = 6,
+    parameter                   N_INIT_PORT    = 1,
+    parameter                   N_TARG_PORT    = 7,
+    parameter                   AXI_DATA_W     = 64,
+    parameter                   AXI_ID_IN      = 16,      
+    parameter                   LOG_N_TARG     = $clog2(N_TARG_PORT),
+    parameter                   LOG_N_INIT     = $clog2(N_INIT_PORT),
+    parameter                   AXI_ID_OUT     = AXI_ID_IN + $clog2(N_TARG_PORT)
 )
 (
-  input  logic								clk,
-  input  logic								rst_n,
+  input  logic                                                          clk,
+  input  logic                                                          rst_n,
   
   //AXI BACKWARD read data bus ----------------------------------------------
-  input  logic [N_INIT_PORT-1:0][AXI_ID_OUT-1:0]			rid_i,
-  input  logic [N_INIT_PORT-1:0][AXI_DATA_W-1:0]			rdata_i,
-  input  logic [N_INIT_PORT-1:0][ 1:0]               			rresp_i,
-  input  logic [N_INIT_PORT-1:0]                     			rlast_i,   //last transfer in burst
-  input  logic [N_INIT_PORT-1:0][AXI_USER_W-1:0]			ruser_i,   //last transfer in burst
-  input  logic [N_INIT_PORT-1:0]                    			rvalid_i,  //slave data valid
-  output logic [N_INIT_PORT-1:0]                   			rready_o,   //master ready to accept
+  input  logic [N_INIT_PORT-1:0][AXI_ID_OUT-1:0]                        rid_i,
+  input  logic [N_INIT_PORT-1:0][AXI_DATA_W-1:0]                        rdata_i,
+  input  logic [N_INIT_PORT-1:0][ 1:0]                                  rresp_i,
+  input  logic [N_INIT_PORT-1:0]                                        rlast_i,   //last transfer in burst
+  input  logic [N_INIT_PORT-1:0][AXI_USER_W-1:0]                        ruser_i,   //last transfer in burst
+  input  logic [N_INIT_PORT-1:0]                                        rvalid_i,  //slave data valid
+  output logic [N_INIT_PORT-1:0]                                        rready_o,   //master ready to accept
 
   //AXI BACKWARD read data bus ----------------------------------------------
-  output  logic [AXI_ID_IN-1:0]						rid_o,
-  output  logic [AXI_DATA_W-1:0]					rdata_o,
-  output  logic [ 1:0]               					rresp_o,
-  output  logic                      					rlast_o,   //last transfer in burst
-  output  logic [AXI_USER_W-1:0]   					ruser_o,   //last transfer in burst
-  output  logic                     					rvalid_o,  //slave data valid
-  input   logic 	 						rready_i,   //master ready to accept
+  output  logic [AXI_ID_IN-1:0]                                         rid_o,
+  output  logic [AXI_DATA_W-1:0]                                        rdata_o,
+  output  logic [ 1:0]                                                  rresp_o,
+  output  logic                                                         rlast_o,   //last transfer in burst
+  output  logic [AXI_USER_W-1:0]                                        ruser_o,   //last transfer in burst
+  output  logic                                                         rvalid_o,  //slave data valid
+  input   logic                                                         rready_i,   //master ready to accept
   
-  input   logic								incr_req_i,
-  output  logic								full_counter_o,
-  output  logic								outstanding_trans_o,
+  input   logic                                                         incr_req_i,
+  output  logic                                                         full_counter_o,
+  output  logic                                                         outstanding_trans_o,
   
-  input   logic								error_req_i,
-  output  logic								error_gnt_o,
-  input   logic	[ 7:0]							error_len_i,
-  input   logic	[AXI_USER_W-1:0]					error_user_i,
-  input   logic	[AXI_ID_IN-1:0]						error_id_i,
+  input   logic                                                         error_req_i,
+  output  logic                                                         error_gnt_o,
+  input   logic [ 7:0]                                                  error_len_i,
+  input   logic [AXI_USER_W-1:0]                                        error_user_i,
+  input   logic [AXI_ID_IN-1:0]                                         error_id_i,
   
-  input  logic								sample_ardata_info_i
+  input  logic                                                          sample_ardata_info_i
 );
 
-localparam	AUX_WIDTH = AXI_DATA_W + 2 + 1 + AXI_USER_W;
+localparam      AUX_WIDTH = AXI_DATA_W + 2 + 1 + AXI_USER_W;
 
 
 
@@ -55,9 +97,9 @@ localparam	AUX_WIDTH = AXI_DATA_W + 2 + 1 + AXI_USER_W;
 
 
 
-logic [N_INIT_PORT-1:0][AUX_WIDTH-1:0]				AUX_VECTOR_IN;
-logic [AUX_WIDTH-1:0]						AUX_VECTOR_OUT;
-logic [N_INIT_PORT-1:0][AXI_ID_IN-1:0]				rid_int;
+logic [N_INIT_PORT-1:0][AUX_WIDTH-1:0]                          AUX_VECTOR_IN;
+logic [AUX_WIDTH-1:0]                                           AUX_VECTOR_OUT;
+logic [N_INIT_PORT-1:0][AXI_ID_IN-1:0]                          rid_int;
 
 genvar i;
 
@@ -69,22 +111,22 @@ genvar i;
 //                         TRACK PENDING TRANSACTIONS                          //
 // -------------------------------------------------------------------------   //
 // -------------------------------------------------------------------------   //
-logic   [9:0]							outstanding_counter;
-logic 								decr_req;
-enum logic [1:0] 						{OPERATIVE, ERROR_SINGLE, ERROR_BURST, GO_ERROR} CS, NS;
-logic   [7:0]							CounterBurstCS, CounterBurstNS; 
-logic	[ 7:0]							error_len_S;
-logic	[AXI_USER_W-1:0]					error_user_S;
-logic	[AXI_ID_IN-1:0]						error_id_S;
+logic   [9:0]                                                   outstanding_counter;
+logic                                                           decr_req;
+enum logic [1:0]                                                {OPERATIVE, ERROR_SINGLE, ERROR_BURST, GO_ERROR} CS, NS;
+logic   [7:0]                                                   CounterBurstCS, CounterBurstNS; 
+logic   [ 7:0]                                                  error_len_S;
+logic   [AXI_USER_W-1:0]                                        error_user_S;
+logic   [AXI_ID_IN-1:0]                                         error_id_S;
 
 //OUtput of the ARB tree, to be multiplexed in the FSM
-logic [AXI_ID_IN-1:0]						rid_ARB_TREE;
-logic [AXI_DATA_W-1:0]						rdata_ARB_TREE;
-logic [ 1:0]               					rresp_ARB_TREE;
-logic                      					rlast_ARB_TREE;   //last transfer in burst
-logic [AXI_USER_W-1:0]   					ruser_ARB_TREE;   //last transfer in burst
-logic                     					rvalid_ARB_TREE;  //slave data valid
-logic 	 							rready_ARB_TREE;   //master ready to accept
+logic [AXI_ID_IN-1:0]                                           rid_ARB_TREE;
+logic [AXI_DATA_W-1:0]                                          rdata_ARB_TREE;
+logic [ 1:0]                                                    rresp_ARB_TREE;
+logic                                                           rlast_ARB_TREE;   //last transfer in burst
+logic [AXI_USER_W-1:0]                                          ruser_ARB_TREE;   //last transfer in burst
+logic                                                           rvalid_ARB_TREE;  //slave data valid
+logic                                                           rready_ARB_TREE;   //master ready to accept
 
 
 
@@ -106,18 +148,18 @@ begin
         2'b00: begin  outstanding_counter  <= outstanding_counter; end
         2'b01: 
         begin  
-		if(outstanding_counter != '0)
-		    outstanding_counter  <= outstanding_counter - 1'b1;
-		else
-		    outstanding_counter  <= '0;
-	end
+                if(outstanding_counter != '0)
+                    outstanding_counter  <= outstanding_counter - 1'b1;
+                else
+                    outstanding_counter  <= '0;
+        end
         2'b10:
         begin  
-		if(outstanding_counter != '1)
-		    outstanding_counter  <= outstanding_counter + 1'b1;
-		else
-		    outstanding_counter  <= '1;		    
-	end
+                if(outstanding_counter != '1)
+                    outstanding_counter  <= outstanding_counter + 1'b1;
+                else
+                    outstanding_counter  <= '1;             
+        end
         2'b11: begin  outstanding_counter  <= outstanding_counter; end
       endcase
     end
@@ -141,9 +183,9 @@ begin
     CounterBurstCS <= CounterBurstNS;
     if(sample_ardata_info_i)
     begin
-	error_user_S  <= error_user_i;
-	error_id_S    <= error_id_i;    
-	error_len_S   <= error_len_i;
+        error_user_S  <= error_user_i;
+        error_id_S    <= error_id_i;    
+        error_len_S   <= error_len_i;
     end
   end
 end
@@ -175,23 +217,23 @@ begin
         if((error_req_i == 1'b1))
         begin
         
-	  if(outstanding_trans_o == 1'b0)
-	  begin
-	      if(error_len_i == '0)
-		NS = ERROR_SINGLE;
-	      else
-		NS = ERROR_BURST;	  
-	  end
-	  else
-	  begin
-	      NS = GO_ERROR;
-	  end
-	  
-	  
+          if(outstanding_trans_o == 1'b0)
+          begin
+              if(error_len_i == '0)
+                NS = ERROR_SINGLE;
+              else
+                NS = ERROR_BURST;         
+          end
+          else
+          begin
+              NS = GO_ERROR;
+          end
+          
+          
         end
         else
         begin
-	  NS = OPERATIVE;
+          NS = OPERATIVE;
         end
     end
   
@@ -202,22 +244,22 @@ begin
     GO_ERROR:
     begin
     
-	  CounterBurstNS   = '0;
-	  rready_ARB_TREE  = rready_i;
-	  error_gnt_o      = 1'b0;
+          CounterBurstNS   = '0;
+          rready_ARB_TREE  = rready_i;
+          error_gnt_o      = 1'b0;
         
-	  if(outstanding_trans_o == 1'b0)
-	  begin
-	      if(error_len_S == '0)
-		NS = ERROR_SINGLE;
-	      else
-		NS = ERROR_BURST;	  
-	  end
-	  else
-	  begin
-	      NS = GO_ERROR;
-	  end   
-	  
+          if(outstanding_trans_o == 1'b0)
+          begin
+              if(error_len_S == '0)
+                NS = ERROR_SINGLE;
+              else
+                NS = ERROR_BURST;         
+          end
+          else
+          begin
+              NS = GO_ERROR;
+          end   
+          
     end
   
   
@@ -228,18 +270,18 @@ begin
     begin
         rready_ARB_TREE = 1'b0;
         CounterBurstNS = '0;
-	error_gnt_o = 1'b1;
-	rresp_o     = `DECERR;
-	rdata_o     = { (AXI_DATA_W/32) {32'hDEADBEEF}};
-	rvalid_o    = 1'b1;
-	ruser_o     = error_user_S;
-	rlast_o     = 1'b1;
-	rid_o       = error_id_S;
-	
-	if(rready_i)
-	  NS = OPERATIVE;
-	else
-	  NS = ERROR_SINGLE;	  
+        error_gnt_o = 1'b1;
+        rresp_o     = `DECERR;
+        rdata_o     = { (AXI_DATA_W/32) {32'hDEADBEEF}};
+        rvalid_o    = 1'b1;
+        ruser_o     = error_user_S;
+        rlast_o     = 1'b1;
+        rid_o       = error_id_S;
+        
+        if(rready_i)
+          NS = OPERATIVE;
+        else
+          NS = ERROR_SINGLE;      
     end
     
     
@@ -248,44 +290,44 @@ begin
     begin
     
         rready_ARB_TREE = 1'b0;
-	
-	rresp_o     = `DECERR;
-	rdata_o     = { (AXI_DATA_W/32) {32'hDEADBEEF}};
-	rvalid_o    = 1'b1;
-	ruser_o     = error_user_S;
-	rid_o       = error_id_S;
-	
-	if(rready_i)
-	begin
-	    if(CounterBurstCS < error_len_i)
-	    begin
-	      CounterBurstNS = CounterBurstCS + 1'b1;
-	      error_gnt_o    = 1'b0;
-	      rlast_o        = 1'b0;
-	      NS             = ERROR_BURST;
-	    end
-	    else
-	    begin
-	      error_gnt_o    = 1'b1;
-	      CounterBurstNS = '0;
-	      NS             = OPERATIVE;
-	      rlast_o        = 1'b1;
-	    end
-	end
-	else
-	begin
-	    NS = ERROR_BURST;
-	    error_gnt_o      = 1'b0;
-	end
-	
+        
+        rresp_o     = `DECERR;
+        rdata_o     = { (AXI_DATA_W/32) {32'hDEADBEEF}};
+        rvalid_o    = 1'b1;
+        ruser_o     = error_user_S;
+        rid_o       = error_id_S;
+        
+        if(rready_i)
+        begin
+            if(CounterBurstCS < error_len_i)
+            begin
+              CounterBurstNS = CounterBurstCS + 1'b1;
+              error_gnt_o    = 1'b0;
+              rlast_o        = 1'b0;
+              NS             = ERROR_BURST;
+            end
+            else
+            begin
+              error_gnt_o    = 1'b1;
+              CounterBurstNS = '0;
+              NS             = OPERATIVE;
+              rlast_o        = 1'b1;
+            end
+        end
+        else
+        begin
+            NS = ERROR_BURST;
+            error_gnt_o      = 1'b0;
+        end
+        
     end
     
     
     default :
     begin
-	CounterBurstNS = '0;
-	NS             = OPERATIVE;
-	error_gnt_o      = 1'b0;
+        CounterBurstNS = '0;
+        NS             = OPERATIVE;
+        error_gnt_o      = 1'b0;
     end
     
     
@@ -336,7 +378,7 @@ begin : ARB_TREE
     (
       .clk           (  clk            ),
       .rst_n         (  rst_n          ),
-	
+        
       // ---------------- RESP_SIDE -------
       .data_req_i    (  rvalid_i       ),
       .data_AUX_i    (  AUX_VECTOR_IN  ),
@@ -350,7 +392,7 @@ begin : ARB_TREE
       .data_gnt_i    (  rready_ARB_TREE  ),
       
       .lock          (1'b0),
-      .SEL_EXCLUSIVE ({`log2(N_INIT_PORT-1){1'b0}})
+      .SEL_EXCLUSIVE ({$clog2(N_INIT_PORT){1'b0}})
     );
 end
 endgenerate

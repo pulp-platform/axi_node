@@ -1,58 +1,150 @@
+// ============================================================================= //
+//                           COPYRIGHT NOTICE                                    //
+// Copyright 2014 Multitherman Laboratory - University of Bologna                //
+// ALL RIGHTS RESERVED                                                           //
+// This confidential and proprietary software may be used only as authorised by  //
+// a licensing agreement from Multitherman Laboratory - University of Bologna.   //
+// The entire notice above must be reproduced on all authorized copies and       //
+// copies may only be made to the extent permitted by a licensing agreement from //
+// Multitherman Laboratory - University of Bologna.                              //
+// ============================================================================= //
+
+// ============================================================================= //
+// Company:        Multitherman Laboratory @ DEIS - University of Bologna        //
+//                    Viale Risorgimento 2 40136                                 //
+//                    Bologna - fax 0512093785 -                                 //
+//                                                                               //
+// Engineer:       Antonio Pullini - pullinia@iis.ee.ethz.ch                     //
+//                 Igor Loi - igor.loi@unibo.it                                  //
+//                                                                               //
+//                                                                               //
+// Additional contributions by:                                                  //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+// Create Date:    01/02/2014                                                    //
+// Design Name:    AXI 4 INTERCONNECT                                            //
+// Module Name:    axi_regs_top                                                  //
+// Project Name:   PULP                                                          //
+// Language:       SystemVerilog                                                 //
+//                                                                               //
+// Description:    This block allows for the node reconfiguration. basically is  //
+//                 possible to remap each master port (memory mapped) and to     //
+//                 define the connectivity map between masters and slaves.       //
+//                 It is possible to define up to 4 regions for each master port.//
+//                 Each Region is made of Start address, end address and Valid   //
+//                 rule. Connettivity map is stored in a 32 bit register,        //
+//                 therefore it is not possible to have more than 32 slave ports //
+//                 The memory map is the FOLLOWING:                              //
+//                                                                               //
+//                 @0x00 --> START ADDR REGION 0 , MASTER PORT 0                 //
+//                 @0x04 --> END   ADDR REGION 0 , MASTER PORT 0                 //
+//                 @0x08 --> VALID RULE REGION 0 , MASTER PORT 0                 //
+//                 @0x0C --> NOT USED                                            //
+//                 @0x10 --> START ADDR REGION 1 , MASTER PORT 0                 //
+//                 @0x14 --> END   ADDR REGION 1 , MASTER PORT 0                 //
+//                 @0x18 --> VALID RULE REGION 1 , MASTER PORT 0                 //
+//                 @0x1C --> NOT USED                                            //
+//                 @0x20 --> START ADDR REGION 2 , MASTER PORT 0                 //
+//                 @0x24 --> END   ADDR REGION 2 , MASTER PORT 0                 //
+//                 @0x28 --> VALID RULE REGION 2 , MASTER PORT 0                 //
+//                 @0x2C --> NOT USED                                            //
+//                 @0x30 --> START ADDR REGION 3 , MASTER PORT 0                 //
+//                 @0x34 --> END   ADDR REGION 3 , MASTER PORT 0                 //
+//                 @0x38 --> VALID RULE REGION 3 , MASTER PORT 0                 //
+//                 @0x3C --> NOT USED                                            //
+//                                                                               //
+//                 @0x40 --> START ADDR REGION 0 , MASTER PORT 1                 //
+//                 @0x44 --> END   ADDR REGION 0 , MASTER PORT 1                 //
+//                 @0x48 --> VALID RULE REGION 0 , MASTER PORT 1                 //
+//                 @0x4C --> NOT USED                                            //
+//                 @0x50 --> START ADDR REGION 1 , MASTER PORT 1                 //
+//                 @0x54 --> END   ADDR REGION 1 , MASTER PORT 1                 //
+//                 @0x58 --> VALID RULE REGION 1 , MASTER PORT 1                 //
+//                 @0x5C --> NOT USED                                            //
+//                 @0x60 --> START ADDR REGION 2 , MASTER PORT 1                 //
+//                 @0x64 --> END   ADDR REGION 2 , MASTER PORT 1                 //
+//                 @0x68 --> VALID RULE REGION 2 , MASTER PORT 1                 //
+//                 @0x6C --> NOT USED                                            //
+//                 @0x70 --> START ADDR REGION 3 , MASTER PORT 1                 //
+//                 @0x74 --> END   ADDR REGION 3 , MASTER PORT 1                 //
+//                 @0x78 --> VALID RULE REGION 3 , MASTER PORT 1                 //
+//                 @0x7C --> NOT USED                                            //
+//                 .....                                                         //
+//                 .....                                                         //
+//                 @0x1000 --> CONNECTIVITY MAP MASTER 0                         //
+//                 @0x1004 --> CONNECTIVITY MAP MASTER 1                         //                                                      
+//                 @0x1008 --> CONNECTIVITY MAP MASTER 2                         //
+//                 @0x100C --> CONNECTIVITY MAP MASTER 3                         //
+//                 .....                                                         //
+//                 .....                                                         //
+// Revision:                                                                     //
+// Revision v0.1 - 01/02/2014 : File Created                                     //
+// Revision v0.2 - 30/05/2014 : Design adapted for the axi node                  //
+// Revision v0.3 - 18/11/2014 : Modification in the memory map                   //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+// ============================================================================= //
+
+
 module axi_regs_top
 #(
     parameter C_S_AXI_ADDR_WIDTH = 32,
     parameter C_S_AXI_DATA_WIDTH = 32,
 
     parameter N_REGION_MAX       = 4,
-    parameter N_INIT_PORT        = 16,
-    parameter N_TARG_PORT        = 16
+    parameter N_MASTER_PORT      = 16,
+    parameter N_SLAVE_PORT       = 16
 )
 (
-    input  logic							s_axi_aclk,
-    input  logic							s_axi_aresetn,
+    input  logic                                                                 s_axi_aclk,
+    input  logic                                                                 s_axi_aresetn,
     // ADDRESS WRITE CHANNEL
-    input  logic [C_S_AXI_ADDR_WIDTH-1:0] 				s_axi_awaddr,
-    input  logic							s_axi_awvalid,
-    output logic							s_axi_awready,
+    input  logic [C_S_AXI_ADDR_WIDTH-1:0]                                        s_axi_awaddr,
+    input  logic                                                                 s_axi_awvalid,
+    output logic                                                                 s_axi_awready,
 
 
     // ADDRESS READ CHANNEL
-    input  logic [C_S_AXI_ADDR_WIDTH-1:0]				s_axi_araddr,
-    input  logic 							s_axi_arvalid,
-    output logic							s_axi_arready,
+    input  logic [C_S_AXI_ADDR_WIDTH-1:0]                                        s_axi_araddr,
+    input  logic                                                                 s_axi_arvalid,
+    output logic                                                                 s_axi_arready,
 
 
     // ADDRESS WRITE CHANNEL
-    input  logic [C_S_AXI_DATA_WIDTH-1:0]				s_axi_wdata,
-    input  logic [C_S_AXI_DATA_WIDTH/8-1:0]				s_axi_wstrb,
-    input  logic 							s_axi_wvalid,
-    output logic							s_axi_wready,
+    input  logic [C_S_AXI_DATA_WIDTH-1:0]                                        s_axi_wdata,
+    input  logic [C_S_AXI_DATA_WIDTH/8-1:0]                                      s_axi_wstrb,
+    input  logic                                                                 s_axi_wvalid,
+    output logic                                                                 s_axi_wready,
 
-    input  logic 							s_axi_bready,
-    output logic [1:0] 							s_axi_bresp,
-    output logic							s_axi_bvalid,
+    input  logic                                                                 s_axi_bready,
+    output logic [1:0]                                                           s_axi_bresp,
+    output logic                                                                 s_axi_bvalid,
 
      // RESPONSE READ CHANNEL
-    output logic  [C_S_AXI_DATA_WIDTH-1:0] 				s_axi_rdata,
-    output logic             		    				s_axi_rvalid,
-    input  logic             		    				s_axi_rready,
-    output logic [1:0] 							s_axi_rresp,
+    output logic  [C_S_AXI_DATA_WIDTH-1:0]                                       s_axi_rdata,
+    output logic                                                                 s_axi_rvalid,
+    input  logic                                                                 s_axi_rready,
+    output logic [1:0]                                                           s_axi_rresp,
 
-    input  logic [N_REGION_MAX-1:0][N_INIT_PORT-1:0][C_S_AXI_DATA_WIDTH-1:0]	 init_START_ADDR_i,
-    input  logic [N_REGION_MAX-1:0][N_INIT_PORT-1:0][C_S_AXI_DATA_WIDTH-1:0]	 init_END_ADDR_i,
-    input  logic [N_REGION_MAX-1:0][N_INIT_PORT-1:0][C_S_AXI_DATA_WIDTH-1:0]	 init_valid_rule_i,
-    input  logic [N_TARG_PORT-1:0][N_INIT_PORT-1:0]				 init_connectivity_map_i,
+    input  logic [N_REGION_MAX-1:0][N_MASTER_PORT-1:0][C_S_AXI_DATA_WIDTH-1:0]   init_START_ADDR_i,
+    input  logic [N_REGION_MAX-1:0][N_MASTER_PORT-1:0][C_S_AXI_DATA_WIDTH-1:0]   init_END_ADDR_i,
+    input  logic [N_REGION_MAX-1:0][N_MASTER_PORT-1:0]                           init_valid_rule_i,
+    input  logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]                           init_connectivity_map_i,
+ 
+    output logic [N_REGION_MAX-1:0][N_MASTER_PORT-1:0][C_S_AXI_DATA_WIDTH-1:0]   START_ADDR_o,
+    output logic [N_REGION_MAX-1:0][N_MASTER_PORT-1:0][C_S_AXI_DATA_WIDTH-1:0]   END_ADDR_o,
+    output logic [N_REGION_MAX-1:0][N_MASTER_PORT-1:0]                           valid_rule_o,
 
-    output logic [N_REGION_MAX-1:0][N_INIT_PORT-1:0][C_S_AXI_DATA_WIDTH-1:0]	START_ADDR_o,
-    output logic [N_REGION_MAX-1:0][N_INIT_PORT-1:0][C_S_AXI_DATA_WIDTH-1:0]	END_ADDR_o,
-    output logic [N_REGION_MAX-1:0][N_INIT_PORT-1:0]				valid_rule_o,
-
-    output logic [N_TARG_PORT-1:0][N_INIT_PORT-1:0]				connectivity_map_o
+    output logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]                           connectivity_map_o
 );
 
-  localparam NUM_REGS           = N_INIT_PORT*4*N_REGION_MAX + N_TARG_PORT;
+  localparam NUM_REGS           = N_MASTER_PORT*4*N_REGION_MAX + N_SLAVE_PORT;
 
-
+  logic [N_SLAVE_PORT-1:0] [C_S_AXI_DATA_WIDTH-1:0]     temp_reg;
 
   reg                               awaddr_done_reg;
   reg                               awaddr_done_reg_dly;
@@ -79,22 +171,26 @@ module axi_regs_top
   reg      [C_S_AXI_ADDR_WIDTH-1:0] raddr_reg;
   reg      [C_S_AXI_DATA_WIDTH-1:0] data_out_reg;
 
+
+  logic                             write_en;
+
   integer                           byte_index;
 
-  integer			    k,y;
+  integer                           k,y,w;
   genvar i,j;
 
   wire wdata_done_rise;
   wire awaddr_done_rise;
 
 
-  logic [NUM_REGS-1:0][C_S_AXI_DATA_WIDTH/8-1:0][7:0]		cfg_reg;
-  logic [N_TARG_PORT-1:0][C_S_AXI_DATA_WIDTH-1:0] init_connectivity_map_s;
+  logic [NUM_REGS-1:0][C_S_AXI_DATA_WIDTH/8-1:0][7:0]                   cfg_reg;                        //32bit registers
+  logic [N_SLAVE_PORT-1:0][C_S_AXI_DATA_WIDTH-1:0]                      init_connectivity_map_s;        //32bit registers
 
   assign write_en = (wdata_done_rise & awaddr_done_reg) | (awaddr_done_rise & wdata_done_reg);
   assign wdata_done_rise = wdata_done_reg & ~wdata_done_reg_dly;
   assign awaddr_done_rise = awaddr_done_reg & ~awaddr_done_reg_dly;
-  always @(posedge s_axi_aclk or negedge s_axi_aresetn)
+
+  always_ff @(posedge s_axi_aclk, negedge s_axi_aresetn)
   begin
     if (!s_axi_aresetn)
     begin
@@ -107,8 +203,9 @@ module axi_regs_top
       awaddr_done_reg_dly <= awaddr_done_reg;
     end
   end
+
   // WRITE ADDRESS CHANNEL logic
-  always @(posedge s_axi_aclk or negedge s_axi_aresetn)
+  always_ff @(posedge s_axi_aclk, negedge s_axi_aresetn)
   begin
     if (!s_axi_aresetn)
     begin
@@ -122,7 +219,7 @@ module axi_regs_top
       begin
         awready   <= 0;
         awaddr_done_reg <= 1;
-        waddr_reg <= s_axi_awaddr;
+        waddr_reg <= {2'b00,s_axi_awaddr[31:2]};
       end
       else if (awaddr_done_reg && wresp_done_reg)
       begin
@@ -133,7 +230,7 @@ module axi_regs_top
   end
 
   // WRITE DATA CHANNEL logic
-  always @(posedge s_axi_aclk or negedge s_axi_aresetn)
+  always_ff @(posedge s_axi_aclk, negedge s_axi_aresetn)
   begin
     if (!s_axi_aresetn)
     begin
@@ -160,7 +257,7 @@ module axi_regs_top
   end
 
   // WRITE RESPONSE CHANNEL logic
-  always @(posedge s_axi_aclk or negedge s_axi_aresetn)
+  always_ff @(posedge s_axi_aclk, negedge s_axi_aresetn)
   begin
     if (!s_axi_aresetn)
     begin
@@ -194,7 +291,7 @@ module axi_regs_top
   end
 
   // READ ADDRESS CHANNEL logic
-  always @(posedge s_axi_aclk or negedge s_axi_aresetn)
+  always_ff @(posedge s_axi_aclk,  negedge s_axi_aresetn)
   begin
     if (!s_axi_aresetn)
     begin
@@ -218,8 +315,9 @@ module axi_regs_top
     end
   end
 
+
   // READ RESPONSE CHANNEL logic
-  always @(posedge s_axi_aclk or negedge s_axi_aresetn)
+  always_ff @(posedge s_axi_aclk, negedge s_axi_aresetn)
   begin
     if (!s_axi_aresetn)
     begin
@@ -255,69 +353,89 @@ module axi_regs_top
 
 
 
-
-  always_comb
-  begin
-    for(y = 0; y < N_TARG_PORT; y++) begin
-      init_connectivity_map_s[y][N_INIT_PORT-1:0]                  <= init_connectivity_map_i[y];
-      init_connectivity_map_s[y][C_S_AXI_DATA_WIDTH-1:N_INIT_PORT] <= '0;
+  generate
+    if(N_MASTER_PORT < 32)
+    begin
+        always @(*)
+        begin
+          for(w = 0; w < N_SLAVE_PORT; w++) 
+          begin
+            init_connectivity_map_s[w][N_MASTER_PORT-1:0]                  = init_connectivity_map_i[w]; //there are w arrays, each is N_MASTER_PORT bit wide
+            init_connectivity_map_s[w][C_S_AXI_DATA_WIDTH-1:N_MASTER_PORT] = '0;
+          end
+        end
     end
-  end
+    else // N_MASTER_PORT == 32
+    begin
+        always @(*)
+        begin
+          for(w = 0; w < N_SLAVE_PORT; w++) 
+          begin
+            init_connectivity_map_s[w]                  = init_connectivity_map_i[w]; //there are w arrays, each is N_MASTER_PORT bit wide
+          end
+        end
+    end
+    
+  endgenerate
+  
+  
 
-  always @( posedge s_axi_aclk or negedge s_axi_aresetn )
+
+  always_ff @( posedge s_axi_aclk, negedge s_axi_aresetn )
   begin
       if ( s_axi_aresetn == 1'b0 )
       begin
 
 
-      	  for(y = 0; y < N_REGION_MAX; y++)
-	  begin
-	      for(k = 0; k < N_INIT_PORT; k++)
-	      begin
-      		    cfg_reg[ (y*N_INIT_PORT*4) + (k*4) + 0] <= init_START_ADDR_i [y][k];
-		    cfg_reg[ (y*N_INIT_PORT*4) + (k*4) + 1] <= init_END_ADDR_i   [y][k];
-		    cfg_reg[ (y*N_INIT_PORT*4) + (k*4) + 2] <= init_valid_rule_i [y][k];
-		    cfg_reg[ (y*N_INIT_PORT*4) + (k*4) + 3] <= 32'hDEADBEEF;
-	      end
-	  end
+          for(y = 0; y < N_REGION_MAX; y++)
+          begin
+              for(k = 0; k < N_MASTER_PORT; k++)
+              begin
+                    cfg_reg[ (y*4) + (k*4*N_REGION_MAX) + 0]    <= init_START_ADDR_i [y][k];
+                    cfg_reg[ (y*4) + (k*4*N_REGION_MAX) + 1]    <= init_END_ADDR_i   [y][k];
+                    
+                    cfg_reg[ (y*4) + (k*4*N_REGION_MAX) + 2][0] <= init_valid_rule_i [y][k];
+                    cfg_reg[ (y*4) + (k*4*N_REGION_MAX) + 2][C_S_AXI_DATA_WIDTH-1:1] <= '0;
 
- 	 for(y = 0; y < N_TARG_PORT; y++)
- 	 begin
- 		  cfg_reg[N_INIT_PORT*4*N_REGION_MAX + y ] <= init_connectivity_map_s[y];
- 	 end
+                    cfg_reg[ (y*4) + (k*4*N_REGION_MAX) + 3]    <= 32'hDEADBEEF;
+              end
+          end
+
+         for(y = 0; y < N_SLAVE_PORT; y++)
+         begin
+                  cfg_reg[N_MASTER_PORT*4*N_REGION_MAX + y ] <= init_connectivity_map_s[y];
+         end
 
 
 
 
       end
       else  if (write_en)
-	    begin
-		  for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
-		    if ( wstrb_reg[byte_index] == 1 )
-		      cfg_reg[waddr_reg[7:0]][byte_index] <= wdata_reg[(byte_index*8) +: 8]; //TODO Handle Errors if we address unmapped address locations
+            begin
+                  for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
+                    if ( wstrb_reg[byte_index] == 1 )
+                      cfg_reg[waddr_reg[7:0]][byte_index] <= wdata_reg[(byte_index*8) +: 8]; //TODO Handle Errors if we address unmapped address locations
             end
 
   end // SLAVE_REG_WRITE_PROC
-
-
-
 
 
   generate
 
   for(i=0;i<N_REGION_MAX;i++)
   begin
-	for(j=0;j<N_INIT_PORT;j++)
-	begin
-	    	assign START_ADDR_o[i][j]    = cfg_reg[i*N_INIT_PORT*4 + j*4 + 0];
-	    	assign END_ADDR_o[i][j]      = cfg_reg[i*N_INIT_PORT*4 + j*4 + 1];
-	    	assign valid_rule_o[i][j]    = cfg_reg[i*N_INIT_PORT*4 + j*4 + 2];
-	end
+        for(j=0;j<N_MASTER_PORT;j++)
+        begin
+                assign START_ADDR_o [i][j]    = cfg_reg[i*4 + j*4*N_REGION_MAX + 0];
+                assign END_ADDR_o   [i][j]    = cfg_reg[i*4 + j*4*N_REGION_MAX + 1];
+                assign valid_rule_o [i][j]    = cfg_reg[i*4 + j*4*N_REGION_MAX + 2][0][0];
+        end
   end
 
-  for(i = 0; i < N_TARG_PORT; i++)
+  for(i = 0; i < N_SLAVE_PORT; i++)
   begin
-	    assign connectivity_map_o[i]  = cfg_reg[N_INIT_PORT*4*N_REGION_MAX + i][N_INIT_PORT-1:0];
+            assign temp_reg[i] = cfg_reg[N_MASTER_PORT*4*N_REGION_MAX + i];
+            assign connectivity_map_o[i]  = temp_reg[i][N_MASTER_PORT-1:0];
   end
 
   endgenerate

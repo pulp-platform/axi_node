@@ -1,10 +1,52 @@
-// defines
-`define log2(VALUE) ((VALUE) < ( 1 ) ? 0 : (VALUE) < ( 2 ) ? 1 : (VALUE) < ( 4 ) ? 2 : (VALUE) < ( 8 ) ? 3 : (VALUE) < ( 16 )  ? 4 : (VALUE) < ( 32 )  ? 5 : (VALUE) < ( 64 )  ? 6 : (VALUE) < ( 128 ) ? 7 : (VALUE) < ( 256 ) ? 8 : (VALUE) < ( 512 ) ? 9 : (VALUE) < ( 1024 ) ? 10 : (VALUE) < ( 2048 ) ? 11 : (VALUE) < ( 4096 ) ? 12 : (VALUE) < ( 8192 ) ? 13 : (VALUE) < ( 16384 ) ? 14 : (VALUE) < ( 32768 ) ? 15 : (VALUE) < ( 65536 ) ? 16 : (VALUE) < ( 131072 ) ? 17 : (VALUE) < ( 262144 ) ? 18 : (VALUE) < ( 524288 ) ? 19 : (VALUE) < ( 1048576 ) ? 20 : (VALUE) < ( 1048576 * 2 ) ? 21 : (VALUE) < ( 1048576 * 4 ) ? 22 : (VALUE) < ( 1048576 * 8 ) ? 23 : (VALUE) < ( 1048576 * 16 ) ? 24 : 25)
+// ============================================================================= //
+//                           COPYRIGHT NOTICE                                    //
+// Copyright 2014 Multitherman Laboratory - University of Bologna                //
+// ALL RIGHTS RESERVED                                                           //
+// This confidential and proprietary software may be used only as authorised by  //
+// a licensing agreement from Multitherman Laboratory - University of Bologna.   //
+// The entire notice above must be reproduced on all authorized copies and       //
+// copies may only be made to the extent permitted by a licensing agreement from //
+// Multitherman Laboratory - University of Bologna.                              //
+// ============================================================================= //
+
+// ============================================================================= //
+// Company:        Multitherman Laboratory @ DEIS - University of Bologna        //
+//                    Viale Risorgimento 2 40136                                 //
+//                    Bologna - fax 0512093785 -                                 //
+//                                                                               //
+// Engineer:       Igor Loi - igor.loi@unibo.it                                  //
+//                                                                               //
+//                                                                               //
+// Additional contributions by:                                                  //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+// Create Date:    18/11/2014                                                    // 
+// Design Name:    AXI 4 INTERCONNECT                                            // 
+// Module Name:    none                                                          //
+// Project Name:   PULP                                                          //
+// Language:       SystemVerilog                                                 //
+//                                                                               //
+// Description:    axi_node defines and macros                                   //
+//                                                                               //
+//                                                                               //
+// Revision:                                                                     //
+// Revision v0.1 - 18/11/2014 : File Created                                     //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+//                                                                               //
+// ============================================================================= //
 
 
 `define OKAY    2'b00
 `define EXOKAY  2'b01
 `define SLVERR  2'b10
 `define DECERR  2'b11
+
+//`define USE_CFG_BLOCK
+//`define USE_APB
 
 
