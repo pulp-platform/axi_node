@@ -51,6 +51,7 @@ module axi_address_decoder_DW
 (
     input  logic                       clk,
     input  logic                       rst_n,
+    input  logic                       test_en_i,
     
     input  logic                       wvalid_i,
     input  logic                       wlast_i,
@@ -75,23 +76,24 @@ module axi_address_decoder_DW
   
   
   
-   GENERIC_FIFO 
+   generic_fifo 
    #( 
       .DATA_WIDTH(N_INIT_PORT),
       .DATA_DEPTH(FIFO_DEPTH)
    )
    MASTER_ID_FIFO
    (
-      .clk(clk),
-      .rst_n(rst_n),
+      .clk       ( clk                 ),
+      .rst_n     ( rst_n               ),
+      .test_en_i ( test_en_i           ),
       //PUSH SIDE
-      .DATA_IN(DEST_i),
-      .VALID_IN(push_DEST_i),
-      .GRANT_OUT(grant_FIFO_DEST_o),
+      .DATA_IN   ( DEST_i              ),
+      .VALID_IN  ( push_DEST_i         ),
+      .GRANT_OUT ( grant_FIFO_DEST_o   ),
       //POP SIDE
-      .DATA_OUT(DEST_int),
-      .VALID_OUT(valid_DEST),
-      .GRANT_IN(pop_from_DEST_FIFO)
+      .DATA_OUT  ( DEST_int            ),
+      .VALID_OUT ( valid_DEST          ),
+      .GRANT_IN  ( pop_from_DEST_FIFO  )
    );
   
   

@@ -67,6 +67,7 @@ module axi_node
 (
    input logic                                                           clk,
    input logic                                                           rst_n,
+   input logic                                                           test_en_i,
    // ---------------------------------------------------------------
    // AXI TARG Port Declarations -----------------------------------------
    // ---------------------------------------------------------------
@@ -325,6 +326,7 @@ begin : _REQ_BLOCK_GEN
    (
      .clk         (   clk                   ),
      .rst_n       (   rst_n                 ),
+     .test_en_i   (   test_en_i             ),
      
      
      // -----------------------------------------------------------------------------------//
@@ -463,6 +465,7 @@ RESP_BLOCK
 (
    .clk                (  clk                     ),
    .rst_n              (  rst_n                   ),
+   .test_en_i          (  test_en_i               ),
 
    //AXI BACKWARD read data bus ----------------------------------------------
    .rid_i              (  master_rid_i            ), 

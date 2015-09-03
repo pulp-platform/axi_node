@@ -55,6 +55,7 @@ module axi_DW_allocator
 (
   input  logic                                                          clk,
   input  logic                                                          rst_n,
+  input  logic                                                          test_en_i,
   
   //AXI write data bus --> Processor Side ----------------------------------------- 
   input  logic [N_TARG_PORT-1:0] [AXI_DATA_W-1:0]                       wdata_i,
@@ -116,7 +117,7 @@ endgenerate
 
 assign {wdata_o,wstrb_o,wlast_o,wuser_o} = AUX_VECTOR_OUT;
 
-GENERIC_FIFO #( 
+generic_fifo #( 
     .DATA_WIDTH(LOG_N_TARG+N_TARG_PORT),
     .DATA_DEPTH(FIFO_DEPTH)
 )
@@ -124,6 +125,7 @@ MASTER_ID_FIFO
 (
     .clk(clk),
     .rst_n(rst_n),
+    .test_en_i(test_en_i),
     //PUSH SIDE
     .DATA_IN(ID_i),
     .VALID_IN(push_ID_i),

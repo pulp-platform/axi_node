@@ -57,6 +57,7 @@ module axi_response_block
 (
    input logic                                                       clk,
    input logic                                                       rst_n,
+   input logic                                                       test_en_i,
 
    //AXI BACKWARD read data bus ----------------------------------------------
    input  logic [N_INIT_PORT-1:0][AXI_ID_OUT-1:0]                    rid_i,
@@ -326,6 +327,7 @@ DW_ADDR_DEC
 (
     .clk                      ( clk                    ),
     .rst_n                    ( rst_n                  ),
+    .test_en_i                ( test_en_i              ),
       
     .wvalid_i                 ( wvalid_i               ),
     .wlast_i                  ( wlast_i                ),

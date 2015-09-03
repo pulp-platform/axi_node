@@ -59,7 +59,7 @@ module axi_request_block
 (
   input logic                                                           clk,
   input logic                                                           rst_n,
-  
+  input logic                                                           test_en_i,
   
   // -----------------------------------------------------------------------------------//
   //                           INTERNAL (N_TARGET PORT )                                //
@@ -298,6 +298,7 @@ DW_ALLOC
 (
   .clk        (  clk       ), 
   .rst_n      (  rst_n     ), 
+  .test_en_i  ( test_en_i  ),
   
   //AXI write data bus --> Processor Side ----------------------------------------- 
   .wdata_i    (  wdata_i   ), 
