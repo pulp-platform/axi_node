@@ -83,17 +83,15 @@ module axi_address_decoder_DW
    )
    MASTER_ID_FIFO
    (
-      .clk       ( clk                 ),
-      .rst_n     ( rst_n               ),
-      .test_en_i ( test_en_i           ),
-      //PUSH SIDE
-      .DATA_IN   ( DEST_i              ),
-      .VALID_IN  ( push_DEST_i         ),
-      .GRANT_OUT ( grant_FIFO_DEST_o   ),
-      //POP SIDE
-      .DATA_OUT  ( DEST_int            ),
-      .VALID_OUT ( valid_DEST          ),
-      .GRANT_IN  ( pop_from_DEST_FIFO  )
+      .clk          ( clk                 ),
+      .rst_n        ( rst_n               ),
+      .test_mode_i  ( test_en_i           ),
+      .data_i       ( DEST_i              ),
+      .valid_i      ( push_DEST_i         ),
+      .grant_o      ( grant_FIFO_DEST_o   ),
+      .data_o       ( DEST_int            ),
+      .valid_o      ( valid_DEST          ),
+      .grant_i      ( pop_from_DEST_FIFO  )
    );
   
   

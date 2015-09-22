@@ -123,17 +123,15 @@ generic_fifo #(
 )
 MASTER_ID_FIFO
 (
-    .clk(clk),
-    .rst_n(rst_n),
-    .test_en_i(test_en_i),
-    //PUSH SIDE
-    .DATA_IN(ID_i),
-    .VALID_IN(push_ID_i),
-    .GRANT_OUT(grant_FIFO_ID_o),
-    //POP SIDE
-    .DATA_OUT(ID_int),
-    .VALID_OUT(valid_ID),
-    .GRANT_IN(pop_from_ID_FIFO)
+    .clk          (clk              ),
+    .rst_n        (rst_n            ),
+    .test_mode_i  (test_en_i        ),
+    .data_i       (ID_i             ),
+    .valid_i      (push_ID_i        ),
+    .grant_o      (grant_FIFO_ID_o  ),
+    .data_o       (ID_int           ),
+    .valid_o      (valid_ID         ),
+    .grant_i      (pop_from_ID_FIFO )
 );
 
 
