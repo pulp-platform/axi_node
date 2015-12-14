@@ -1,13 +1,12 @@
-// ============================================================================= //
-//                           COPYRIGHT NOTICE                                    //
-// Copyright 2014 Multitherman Laboratory - University of Bologna                //
-// ALL RIGHTS RESERVED                                                           //
-// This confidential and proprietary software may be used only as authorised by  //
-// a licensing agreement from Multitherman Laboratory - University of Bologna.   //
-// The entire notice above must be reproduced on all authorized copies and       //
-// copies may only be made to the extent permitted by a licensing agreement from //
-// Multitherman Laboratory - University of Bologna.                              //
-// ============================================================================= //
+// Copyright 2015 ETH Zurich and University of Bologna.
+// Copyright and related rights are licensed under the Solderpad Hardware
+// License, Version 0.51 (the “License”); you may not use this file except in
+// compliance with the License.  You may obtain a copy of the License at
+// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+// or agreed to in writing, software, hardware and materials distributed under
+// this License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
 
 // ============================================================================= //
 // Company:        Multitherman Laboratory @ DEIS - University of Bologna        //
@@ -21,8 +20,8 @@
 //                                                                               //
 //                                                                               //
 //                                                                               //
-// Create Date:    01/02/2014                                                    // 
-// Design Name:    AXI 4 INTERCONNECT                                            // 
+// Create Date:    01/02/2014                                                    //
+// Design Name:    AXI 4 INTERCONNECT                                            //
 // Module Name:    axi_address_decoder_AR                                        //
 // Project Name:   PULP                                                          //
 // Language:       SystemVerilog                                                 //
@@ -44,29 +43,29 @@ module axi_address_decoder_AR
 #(
     parameter  ADDR_WIDTH     = 32,
     parameter  N_INIT_PORT    = 8,
-    parameter  N_REGION       = 4    
+    parameter  N_REGION       = 4
 )
 (
     input  logic                                                        clk,
     input  logic                                                        rst_n,
-    
+
     input  logic                                                        arvalid_i,
     input  logic [ADDR_WIDTH-1:0]                                       araddr_i,
     output logic                                                        arready_o,
-    
+
     output logic [N_INIT_PORT-1:0]                                      arvalid_o,
     input  logic [N_INIT_PORT-1:0]                                      arready_i,
-    
+
     input  logic [N_REGION-1:0][N_INIT_PORT-1:0][ADDR_WIDTH-1:0]        START_ADDR_i,
     input  logic [N_REGION-1:0][N_INIT_PORT-1:0][ADDR_WIDTH-1:0]        END_ADDR_i,
     input  logic [N_REGION-1:0][N_INIT_PORT-1:0]                        enable_region_i,
-    
+
     input  logic [N_INIT_PORT-1:0]                                      connectivity_map_i,
-    
+
     output logic                                                        incr_req_o,
     input  logic                                                        full_counter_i,
     input  logic                                                        outstanding_trans_i,
-    
+
     output logic                                                        error_req_o,
     input  logic                                                        error_gnt_i,
     output logic                                                        sample_ardata_info_o
@@ -75,19 +74,19 @@ module axi_address_decoder_AR
   logic [N_INIT_PORT-1:0]                               match_region;
   logic [N_INIT_PORT:0]                                 match_region_masked;
   logic [N_REGION-1:0][N_INIT_PORT-1:0]                 match_region_int;
-  logic [N_INIT_PORT-1:0][N_REGION-1:0]                 match_region_rev;  
-  
-  
+  logic [N_INIT_PORT-1:0][N_REGION-1:0]                 match_region_rev;
+
+
   logic                                                 arready_int;
   logic [N_INIT_PORT-1:0]                               arvalid_int;
-  
+
   genvar i,j;
 
   enum logic    {OPERATIVE, ERROR} CS, NS;
-  
-  
-  generate 
-  
+
+
+  generate
+
       // First calculate for each region where what slave ist matching
       for(j=0;j<N_REGION;j++)
       begin
@@ -105,26 +104,26 @@ module axi_address_decoder_AR
              assign match_region_rev[j][i] = match_region_int[i][j];
            end
       end
-  
+
 
       //Or reduction
       for(i=0;i<N_INIT_PORT;i++)
       begin
         assign match_region[i]  =  | match_region_rev[i];
       end
-      
+
       assign match_region_masked[N_INIT_PORT-1:0] = match_region & connectivity_map_i;
-      
+
       // if there are no moatches, then assert an error
       assign match_region_masked[N_INIT_PORT] = ~(|match_region_masked[N_INIT_PORT-1:0]);
   endgenerate
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
  always_comb
  begin
 
@@ -137,9 +136,9 @@ module axi_address_decoder_AR
         arvalid_int = '0;
         error_req_o = 1'b0;
     end
-    
+
     arready_int = |({error_gnt_i,arready_i} & match_region_masked);
-    
+
  end
 
 
@@ -158,20 +157,20 @@ module axi_address_decoder_AR
         CS <= NS;
     end
   end
-  
-  
-  
+
+
+
   always_comb
   begin
       arready_o = 1'b0;
       arvalid_o = arvalid_int;
-      
+
       sample_ardata_info_o = 1'b0;
-      
+
       incr_req_o = 1'b0;
-      
+
       case(CS)
-          OPERATIVE: 
+          OPERATIVE:
           begin
               if(error_req_o)
               begin
@@ -189,12 +188,12 @@ module axi_address_decoder_AR
                 arvalid_o = arvalid_int;
               end
           end
-          
-          ERROR: 
+
+          ERROR:
           begin
               arready_o = 1'b0;
               arvalid_o = '0;
-              
+
               if(outstanding_trans_i)
               begin
                 NS = ERROR;
@@ -209,10 +208,10 @@ module axi_address_decoder_AR
                 begin
                   NS        = ERROR;
                 end
-                
-              end        
+
+              end
           end
-          
+
           default :
           begin
               NS        = OPERATIVE;
@@ -220,9 +219,9 @@ module axi_address_decoder_AR
           end
       endcase
   end
-  
+
   // --------------------------------------------------------------------------------------------------------------------------------------------------//
   //                                                                                                                                                   //
   // --------------------------------------------------------------------------------------------------------------------------------------------------//
-  
+
 endmodule

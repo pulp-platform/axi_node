@@ -1,13 +1,12 @@
-// ============================================================================= //
-//                           COPYRIGHT NOTICE                                    //
-// Copyright 2014 Multitherman Laboratory - University of Bologna                //
-// ALL RIGHTS RESERVED                                                           //
-// This confidential and proprietary software may be used only as authorised by  //
-// a licensing agreement from Multitherman Laboratory - University of Bologna.   //
-// The entire notice above must be reproduced on all authorized copies and       //
-// copies may only be made to the extent permitted by a licensing agreement from //
-// Multitherman Laboratory - University of Bologna.                              //
-// ============================================================================= //
+// Copyright 2015 ETH Zurich and University of Bologna.
+// Copyright and related rights are licensed under the Solderpad Hardware
+// License, Version 0.51 (the “License”); you may not use this file except in
+// compliance with the License.  You may obtain a copy of the License at
+// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+// or agreed to in writing, software, hardware and materials distributed under
+// this License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
 
 // ============================================================================= //
 // Company:        Multitherman Laboratory @ DEIS - University of Bologna        //
@@ -42,19 +41,19 @@
 
 `include "defines.v"
 
-module axi_BW_allocator 
+module axi_BW_allocator
 #(
     parameter                   AXI_USER_W     = 6,
     parameter                   N_INIT_PORT    = 1,
     parameter                   N_TARG_PORT    = 7,
     parameter                   AXI_DATA_W     = 64,
-    parameter                   AXI_ID_IN      = 16,      
+    parameter                   AXI_ID_IN      = 16,
     parameter                   AXI_ID_OUT     = AXI_ID_IN + $clog2(N_TARG_PORT)
 )
 (
   input  logic                                                          clk,
   input  logic                                                          rst_n,
-  
+
   //AXI BACKWARD read data bus ----------------------------------------------
   input  logic [N_INIT_PORT-1:0][AXI_ID_OUT-1:0]                        bid_i,
   input  logic [N_INIT_PORT-1:0][ 1:0]                                  bresp_i,
@@ -68,13 +67,13 @@ module axi_BW_allocator
   output  logic [AXI_USER_W-1:0]                                        buser_o,   //last transfer in burst
   output  logic                                                         bvalid_o,  //slave data valid
   input   logic                                                         bready_i,   //master ready to accept
-  
-  
+
+
   input   logic                                                         incr_req_i,
   output  logic                                                         full_counter_o,
   output  logic                                                         outstanding_trans_o,
   input   logic                                                         sample_awdata_info_i,
-  
+
   input   logic                                                         error_req_i,
   output  logic                                                         error_gnt_o,
   input   logic [AXI_USER_W-1:0]                                        error_user_i,
@@ -138,19 +137,19 @@ begin
     begin
       case({incr_req_i, decr_req})
         2'b00: begin  outstanding_counter  <= outstanding_counter; end
-        2'b01: 
-        begin  
+        2'b01:
+        begin
                 if(outstanding_counter != '0)
                     outstanding_counter  <= outstanding_counter - 1'b1;
                 else
                     outstanding_counter  <= '0;
         end
         2'b10:
-        begin  
+        begin
                 if(outstanding_counter != '1)
                     outstanding_counter  <= outstanding_counter + 1'b1;
                 else
-                    outstanding_counter  <= '1;             
+                    outstanding_counter  <= '1;
         end
         2'b11: begin  outstanding_counter  <= outstanding_counter; end
       endcase
@@ -198,17 +197,17 @@ begin
   buser_o         = buser_ARB_TREE;
   bvalid_o        = bvalid_ARB_TREE;
   bready_ARB_TREE = bready_i;
-  
+
   error_gnt_o      = 1'b0;
-  
-  
+
+
   case(CS)
 
-    OPERATIVE : 
+    OPERATIVE :
     begin
         bready_ARB_TREE  = bready_i;
         error_gnt_o      = 1'b0;
-        
+
         if((error_req_i == 1'b1) && (outstanding_trans_o == 1'b0))
         begin
             NS = ERROR_SINGLE;
@@ -218,9 +217,9 @@ begin
           NS = OPERATIVE;
         end
     end
-  
-  
-    ERROR_SINGLE : 
+
+
+    ERROR_SINGLE :
     begin
         bready_ARB_TREE = 1'b0;
         error_gnt_o = 1'b1;
@@ -228,23 +227,23 @@ begin
         bvalid_o    = 1'b1;
         buser_o     = error_user_S;
         bid_o       = error_id_S;
-        
+
         if(bready_i)
           NS = OPERATIVE;
         else
-          NS = ERROR_SINGLE;      
+          NS = ERROR_SINGLE;
     end
-    
-    
-    
+
+
+
     default :
     begin
         NS             = OPERATIVE;
         error_gnt_o      = 1'b0;
     end
-    
-    
-    
+
+
+
   endcase
 end
 // -------------------------------------------------------------------------   //
@@ -257,11 +256,11 @@ generate
   begin : AUX_VECTOR_BINDING
       assign AUX_VECTOR_IN[i] =  { buser_i[i], bresp_i[i]};
   end
-  
+
   for(i=0;i<N_INIT_PORT;i++)
   begin : BID_VECTOR_BINDING
       assign bid_int[i] =  bid_i[i][AXI_ID_IN-1:0];
-  end  
+  end
 
 
 
@@ -280,17 +279,17 @@ begin : ARB_TREE
 
 
 
-    axi_ArbitrationTree 
+    axi_ArbitrationTree
     #(
       .AUX_WIDTH  (AUX_WIDTH),
       .ID_WIDTH   (AXI_ID_IN),
       .N_MASTER   (N_INIT_PORT)
-    ) 
+    )
     BW_ARB_TREE
     (
       .clk           (  clk            ),
       .rst_n         (  rst_n          ),
-        
+
       // ---------------- RESP_SIDE -------
       .data_req_i    (  bvalid_i       ),
       .data_AUX_i    (  AUX_VECTOR_IN  ),
@@ -300,9 +299,9 @@ begin : ARB_TREE
       // Outputs
       .data_req_o    (  bvalid_ARB_TREE       ),
       .data_AUX_o    (  AUX_VECTOR_OUT ),
-      .data_ID_o     (  bid_ARB_TREE          ), 
+      .data_ID_o     (  bid_ARB_TREE          ),
       .data_gnt_i    (  bready_ARB_TREE       ),
-      
+
       .lock          (1'b0),
       .SEL_EXCLUSIVE ({$clog2(N_INIT_PORT){1'b0}})
     );

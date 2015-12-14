@@ -1,13 +1,12 @@
-// ============================================================================= //
-//                           COPYRIGHT NOTICE                                    //
-// Copyright 2014 Multitherman Laboratory - University of Bologna                //
-// ALL RIGHTS RESERVED                                                           //
-// This confidential and proprietary software may be used only as authorised by  //
-// a licensing agreement from Multitherman Laboratory - University of Bologna.   //
-// The entire notice above must be reproduced on all authorized copies and       //
-// copies may only be made to the extent permitted by a licensing agreement from //
-// Multitherman Laboratory - University of Bologna.                              //
-// ============================================================================= //
+// Copyright 2015 ETH Zurich and University of Bologna.
+// Copyright and related rights are licensed under the Solderpad Hardware
+// License, Version 0.51 (the “License”); you may not use this file except in
+// compliance with the License.  You may obtain a copy of the License at
+// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+// or agreed to in writing, software, hardware and materials distributed under
+// this License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
 
 // ============================================================================= //
 // Company:        Multitherman Laboratory @ DEIS - University of Bologna        //
@@ -42,13 +41,13 @@
 //                                                                               //
 // ============================================================================= //
 
-module axi_DW_allocator 
+module axi_DW_allocator
 #(
     parameter                   AXI_USER_W     = 6,
     parameter                   N_TARG_PORT    = 7,
     parameter                   LOG_N_TARG     = $clog2(N_TARG_PORT),
     parameter                   FIFO_DEPTH     = 8,
-    
+
     parameter                   AXI_DATA_W     = 64,
     parameter                   AXI_NUMBYTES   = AXI_DATA_W/8
 )
@@ -56,27 +55,27 @@ module axi_DW_allocator
   input  logic                                                          clk,
   input  logic                                                          rst_n,
   input  logic                                                          test_en_i,
-  
-  //AXI write data bus --> Processor Side ----------------------------------------- 
+
+  //AXI write data bus --> Processor Side -----------------------------------------
   input  logic [N_TARG_PORT-1:0] [AXI_DATA_W-1:0]                       wdata_i,
   input  logic [N_TARG_PORT-1:0] [AXI_NUMBYTES-1:0]                     wstrb_i,   //1 strobe per byte
   input  logic [N_TARG_PORT-1:0]                                        wlast_i,   //last transfer in burst
   input  logic [N_TARG_PORT-1:0][AXI_USER_W-1:0]                        wuser_i,   // User sideband signal
-  
+
   input  logic [N_TARG_PORT-1:0]                                        wvalid_i,  //master data valid
   output logic [N_TARG_PORT-1:0]                                        wready_o,  //slave ready to accept
-  
-  
-  //AXI write data bus --> Slave Side ----------------------------------------- 
+
+
+  //AXI write data bus --> Slave Side -----------------------------------------
   output logic  [AXI_DATA_W-1:0]                                        wdata_o,
   output logic  [AXI_NUMBYTES-1:0]                                      wstrb_o,   //1 strobe per byte
   output logic                                                          wlast_o,   //last transfer in burst
   output logic  [AXI_USER_W-1:0]                                        wuser_o,   // User sideband signal
-  
+
   output logic                                                          wvalid_o,  //master data valid
-  input  logic                                                          wready_i,  //slave ready to accept 
-  
-  
+  input  logic                                                          wready_i,  //slave ready to accept
+
+
   // PUSH Interface to DW allocator
   input  logic                                                          push_ID_i,
   input  logic [LOG_N_TARG+N_TARG_PORT-1:0]                             ID_i, // {BIN_ID, OH_ID};
@@ -104,12 +103,12 @@ genvar i;
 
 
 generate
-  
+
   for(i=0; i<N_TARG_PORT; i++)
   begin : AUX_VECTOR_BINDING
       assign  AUX_VECTOR_IN[i] = { wdata_i[i], wstrb_i[i], wlast_i[i], wuser_i[i] };
   end
-  
+
 
 endgenerate
 
@@ -117,7 +116,7 @@ endgenerate
 
 assign {wdata_o,wstrb_o,wlast_o,wuser_o} = AUX_VECTOR_OUT;
 
-generic_fifo #( 
+generic_fifo #(
     .DATA_WIDTH(LOG_N_TARG+N_TARG_PORT),
     .DATA_DEPTH(FIFO_DEPTH)
 )
@@ -137,7 +136,7 @@ MASTER_ID_FIFO
 
   assign  ID_int_BIN = ID_int[LOG_N_TARG+N_TARG_PORT-1:N_TARG_PORT];
   assign  ID_int_OH  = ID_int[N_TARG_PORT-1:0];
-  
+
 
 
 
@@ -154,27 +153,27 @@ MASTER_ID_FIFO
         CS             <= NS;
       end
   end
- 
- 
- 
+
+
+
   always_comb
   begin : NEXT_STATE_FSM
-  
+
       pop_from_ID_FIFO = 1'b0;
-      
+
       wvalid_o          = 1'b0;
       wready_o          = '0;
-      
-      
+
+
       case(CS)
-      
-          SINGLE_IDLE : 
+
+          SINGLE_IDLE :
           begin : _CS_IN_SINGLE_IDLE
                 if(valid_ID)
                 begin : _valid_ID
                       wvalid_o   = wvalid_i[ID_int_BIN] ;
                       wready_o   = {N_TARG_PORT{wready_i}} & ID_int_OH;
-                      
+
                       if(wvalid_i[ID_int_BIN] & wready_i)
                       begin : _granted_request
                         if(wlast_i[ID_int_BIN])
@@ -202,18 +201,18 @@ MASTER_ID_FIFO
                            wready_o           = '0;
                 end
           end
-          
-          
-          
-          
-          
-          
+
+
+
+
+
+
           BURST : begin : _CS_IN_BUSRT
 
                       wvalid_o    = wvalid_i[ID_int_BIN];
                       wready_o   = {N_TARG_PORT{wready_i}} & ID_int_OH & {N_TARG_PORT{valid_ID}};
-                      
-                      
+
+
                       if(wvalid_i[ID_int_BIN] & wready_i)
                       begin
                         if(wlast_i[ID_int_BIN])
@@ -232,29 +231,29 @@ MASTER_ID_FIFO
                            NS                 = BURST;
                            pop_from_ID_FIFO   = 1'b0;
                       end
-                      
+
           end
-          
+
           default : begin
                           NS               = SINGLE_IDLE;
                           pop_from_ID_FIFO = 1'b0;
                           wvalid_o         = 1'b0;
                           wready_o          = '0;
           end
-          
+
           endcase
-          
-      
+
+
   end
-  
-  
-  
-  
+
+
+
+
   axi_multiplexer
   #(
     .DATA_WIDTH(AUX_WIDTH),
     .N_IN(N_TARG_PORT)
-  ) 
+  )
   WRITE_DATA_MUX
   (
     .IN_DATA(AUX_VECTOR_IN),

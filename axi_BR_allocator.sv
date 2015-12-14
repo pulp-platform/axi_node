@@ -1,13 +1,12 @@
-// ============================================================================= //
-//                           COPYRIGHT NOTICE                                    //
-// Copyright 2014 Multitherman Laboratory - University of Bologna                //
-// ALL RIGHTS RESERVED                                                           //
-// This confidential and proprietary software may be used only as authorised by  //
-// a licensing agreement from Multitherman Laboratory - University of Bologna.   //
-// The entire notice above must be reproduced on all authorized copies and       //
-// copies may only be made to the extent permitted by a licensing agreement from //
-// Multitherman Laboratory - University of Bologna.                              //
-// ============================================================================= //
+// Copyright 2015 ETH Zurich and University of Bologna.
+// Copyright and related rights are licensed under the Solderpad Hardware
+// License, Version 0.51 (the “License”); you may not use this file except in
+// compliance with the License.  You may obtain a copy of the License at
+// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+// or agreed to in writing, software, hardware and materials distributed under
+// this License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
 
 // ============================================================================= //
 // Company:        Multitherman Laboratory @ DEIS - University of Bologna        //
@@ -29,7 +28,7 @@
 //                                                                               //
 // Description:   Backward write Allocator: it performs a round robin arbitr     //
 //                between pending write responses from each master port.         //
-//                                                                               // 
+//                                                                               //
 // Revision:                                                                     //
 // Revision v0.1 - 01/02/2014 : File Created                                     //
 //                                                                               //
@@ -42,13 +41,13 @@
 
 `include "defines.v"
 
-module axi_BR_allocator 
+module axi_BR_allocator
 #(
     parameter                   AXI_USER_W     = 6,
     parameter                   N_INIT_PORT    = 1,
     parameter                   N_TARG_PORT    = 7,
     parameter                   AXI_DATA_W     = 64,
-    parameter                   AXI_ID_IN      = 16,      
+    parameter                   AXI_ID_IN      = 16,
     parameter                   LOG_N_TARG     = $clog2(N_TARG_PORT),
     parameter                   LOG_N_INIT     = $clog2(N_INIT_PORT),
     parameter                   AXI_ID_OUT     = AXI_ID_IN + $clog2(N_TARG_PORT)
@@ -56,7 +55,7 @@ module axi_BR_allocator
 (
   input  logic                                                          clk,
   input  logic                                                          rst_n,
-  
+
   //AXI BACKWARD read data bus ----------------------------------------------
   input  logic [N_INIT_PORT-1:0][AXI_ID_OUT-1:0]                        rid_i,
   input  logic [N_INIT_PORT-1:0][AXI_DATA_W-1:0]                        rdata_i,
@@ -74,17 +73,17 @@ module axi_BR_allocator
   output  logic [AXI_USER_W-1:0]                                        ruser_o,   //last transfer in burst
   output  logic                                                         rvalid_o,  //slave data valid
   input   logic                                                         rready_i,   //master ready to accept
-  
+
   input   logic                                                         incr_req_i,
   output  logic                                                         full_counter_o,
   output  logic                                                         outstanding_trans_o,
-  
+
   input   logic                                                         error_req_i,
   output  logic                                                         error_gnt_o,
   input   logic [ 7:0]                                                  error_len_i,
   input   logic [AXI_USER_W-1:0]                                        error_user_i,
   input   logic [AXI_ID_IN-1:0]                                         error_id_i,
-  
+
   input  logic                                                          sample_ardata_info_i
 );
 
@@ -114,7 +113,7 @@ genvar i;
 logic   [9:0]                                                   outstanding_counter;
 logic                                                           decr_req;
 enum logic [1:0]                                                {OPERATIVE, ERROR_SINGLE, ERROR_BURST, GO_ERROR} CS, NS;
-logic   [7:0]                                                   CounterBurstCS, CounterBurstNS; 
+logic   [7:0]                                                   CounterBurstCS, CounterBurstNS;
 logic   [ 7:0]                                                  error_len_S;
 logic   [AXI_USER_W-1:0]                                        error_user_S;
 logic   [AXI_ID_IN-1:0]                                         error_id_S;
@@ -146,19 +145,19 @@ begin
     begin
       case({incr_req_i, decr_req})
         2'b00: begin  outstanding_counter  <= outstanding_counter; end
-        2'b01: 
-        begin  
+        2'b01:
+        begin
                 if(outstanding_counter != '0)
                     outstanding_counter  <= outstanding_counter - 1'b1;
                 else
                     outstanding_counter  <= '0;
         end
         2'b10:
-        begin  
+        begin
                 if(outstanding_counter != '1)
                     outstanding_counter  <= outstanding_counter + 1'b1;
                 else
-                    outstanding_counter  <= '1;             
+                    outstanding_counter  <= '1;
         end
         2'b11: begin  outstanding_counter  <= outstanding_counter; end
       endcase
@@ -174,7 +173,7 @@ begin
     CS             <= OPERATIVE;
     CounterBurstCS <= '0;
     error_user_S   <= '0;
-    error_id_S     <= '0;  
+    error_id_S     <= '0;
     error_len_S    <= '0;
   end
   else
@@ -184,7 +183,7 @@ begin
     if(sample_ardata_info_i)
     begin
         error_user_S  <= error_user_i;
-        error_id_S    <= error_id_i;    
+        error_id_S    <= error_id_i;
         error_len_S   <= error_len_i;
     end
   end
@@ -201,72 +200,72 @@ begin
   ruser_o         = ruser_ARB_TREE;
   rvalid_o        = rvalid_ARB_TREE;
   rready_ARB_TREE = rready_i;
-  
+
   CounterBurstNS = CounterBurstCS;
   error_gnt_o      = 1'b0;
-  
-  
+
+
   case(CS)
 
-    OPERATIVE : 
+    OPERATIVE :
     begin
         CounterBurstNS   = '0;
         rready_ARB_TREE  = rready_i;
         error_gnt_o      = 1'b0;
-        
+
         if((error_req_i == 1'b1))
         begin
-        
+
           if(outstanding_trans_o == 1'b0)
           begin
               if(error_len_i == '0)
                 NS = ERROR_SINGLE;
               else
-                NS = ERROR_BURST;         
+                NS = ERROR_BURST;
           end
           else
           begin
               NS = GO_ERROR;
           end
-          
-          
+
+
         end
         else
         begin
           NS = OPERATIVE;
         end
     end
-  
-  
-  
-  
-  
+
+
+
+
+
     GO_ERROR:
     begin
-    
+
           CounterBurstNS   = '0;
           rready_ARB_TREE  = rready_i;
           error_gnt_o      = 1'b0;
-        
+
           if(outstanding_trans_o == 1'b0)
           begin
               if(error_len_S == '0)
                 NS = ERROR_SINGLE;
               else
-                NS = ERROR_BURST;         
+                NS = ERROR_BURST;
           end
           else
           begin
               NS = GO_ERROR;
-          end   
-          
+          end
+
     end
-  
-  
-  
-  
-  
-    ERROR_SINGLE : 
+
+
+
+
+
+    ERROR_SINGLE :
     begin
         rready_ARB_TREE = 1'b0;
         CounterBurstNS = '0;
@@ -277,26 +276,26 @@ begin
         ruser_o     = error_user_S;
         rlast_o     = 1'b1;
         rid_o       = error_id_S;
-        
+
         if(rready_i)
           NS = OPERATIVE;
         else
-          NS = ERROR_SINGLE;      
+          NS = ERROR_SINGLE;
     end
-    
-    
-    
-    ERROR_BURST : 
+
+
+
+    ERROR_BURST :
     begin
-    
+
         rready_ARB_TREE = 1'b0;
-        
+
         rresp_o     = `DECERR;
         rdata_o     = { (AXI_DATA_W/32) {32'hDEADBEEF}};
         rvalid_o    = 1'b1;
         ruser_o     = error_user_S;
         rid_o       = error_id_S;
-        
+
         if(rready_i)
         begin
             if(CounterBurstCS < error_len_i)
@@ -319,19 +318,19 @@ begin
             NS = ERROR_BURST;
             error_gnt_o      = 1'b0;
         end
-        
+
     end
-    
-    
+
+
     default :
     begin
         CounterBurstNS = '0;
         NS             = OPERATIVE;
         error_gnt_o      = 1'b0;
     end
-    
-    
-    
+
+
+
   endcase
 end
 // -------------------------------------------------------------------------   //
@@ -347,12 +346,12 @@ generate
   begin : AUX_VECTOR_BINDING
       assign AUX_VECTOR_IN[i] =  { ruser_i[i], rlast_i[i], rresp_i[i], rdata_i[i]};
   end
-  
+
   for(i=0;i<N_INIT_PORT;i++)
   begin : RID_VECTOR_BINDING
       assign rid_int[i] =  rid_i[i][AXI_ID_IN-1:0];
-  end  
-  
+  end
+
 
 
 
@@ -361,24 +360,24 @@ begin : DIRECT_BINDING
     assign rvalid_ARB_TREE = rvalid_i;
     //assign rvalid_o      = rvalid_i;
     assign AUX_VECTOR_OUT  = AUX_VECTOR_IN;
-    
+
     assign rid_ARB_TREE   = rid_int;
     //assign rid_o        = rid_int;
     assign rready_o       = rready_i;
 end
 else
 begin : ARB_TREE
-    axi_ArbitrationTree 
+    axi_ArbitrationTree
     #(
       .AUX_WIDTH  (AUX_WIDTH),
       .ID_WIDTH   (AXI_ID_IN),
       .N_MASTER   (N_INIT_PORT)
-    ) 
+    )
     BR_ARB_TREE
     (
       .clk           (  clk            ),
       .rst_n         (  rst_n          ),
-        
+
       // ---------------- RESP_SIDE -------
       .data_req_i    (  rvalid_i       ),
       .data_AUX_i    (  AUX_VECTOR_IN  ),
@@ -388,9 +387,9 @@ begin : ARB_TREE
       // Outputs
       .data_req_o    (  rvalid_ARB_TREE  ),
       .data_AUX_o    (  AUX_VECTOR_OUT   ),
-      .data_ID_o     (  rid_ARB_TREE     ), 
+      .data_ID_o     (  rid_ARB_TREE     ),
       .data_gnt_i    (  rready_ARB_TREE  ),
-      
+
       .lock          (1'b0),
       .SEL_EXCLUSIVE ({$clog2(N_INIT_PORT){1'b0}})
     );

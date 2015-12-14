@@ -1,13 +1,12 @@
-// ============================================================================= //
-//                           COPYRIGHT NOTICE                                    //
-// Copyright 2014 Multitherman Laboratory - University of Bologna                //
-// ALL RIGHTS RESERVED                                                           //
-// This confidential and proprietary software may be used only as authorised by  //
-// a licensing agreement from Multitherman Laboratory - University of Bologna.   //
-// The entire notice above must be reproduced on all authorized copies and       //
-// copies may only be made to the extent permitted by a licensing agreement from //
-// Multitherman Laboratory - University of Bologna.                              //
-// ============================================================================= //
+// Copyright 2015 ETH Zurich and University of Bologna.
+// Copyright and related rights are licensed under the Solderpad Hardware
+// License, Version 0.51 (the “License”); you may not use this file except in
+// compliance with the License.  You may obtain a copy of the License at
+// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+// or agreed to in writing, software, hardware and materials distributed under
+// this License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
 
 // ============================================================================= //
 // Company:        Multitherman Laboratory @ DEIS - University of Bologna        //
@@ -47,20 +46,20 @@ module axi_node_wrap_with_slices
     parameter                   AXI_ADDRESS_W      = 32,
     parameter                   AXI_DATA_W         = 64,
     parameter                   AXI_NUMBYTES       = AXI_DATA_W/8,
-    parameter                   AXI_USER_W         = 6,    
+    parameter                   AXI_USER_W         = 6,
 `ifdef USE_CFG_BLOCK
-  `ifdef USE_AXI_LITE    
+  `ifdef USE_AXI_LITE
     parameter                   AXI_LITE_ADDRESS_W = 32,
-    parameter                   AXI_LITE_DATA_W    = 32, 
+    parameter                   AXI_LITE_DATA_W    = 32,
     parameter                   AXI_LITE_BE_W      = AXI_LITE_DATA_W/8,
   `else
     parameter                   APB_ADDR_WIDTH     = 12,  //APB slaves are 4KB by default
-    parameter                   APB_DATA_WIDTH     = 32, 
+    parameter                   APB_DATA_WIDTH     = 32,
   `endif
 `endif
     parameter                   N_MASTER_PORT      = 8,
-    parameter                   N_SLAVE_PORT       = 4,  
-    parameter                   AXI_ID_IN          = 4,  
+    parameter                   N_SLAVE_PORT       = 4,
+    parameter                   AXI_ID_IN          = 4,
     parameter                   AXI_ID_OUT         = AXI_ID_IN + $clog2(N_SLAVE_PORT),
     parameter                   FIFO_DEPTH_DW      = 4,
     parameter                   N_REGION           = 4,
@@ -69,12 +68,12 @@ module axi_node_wrap_with_slices
 )
 (
     input logic                                                          clk,
-    input logic                                                          rst_n,    
-    
+    input logic                                                          rst_n,
+
     //MASTER PORTS
     AXI_BUS.Slave                                                        axi_port_slave  [N_SLAVE_PORT],
     AXI_BUS.Master                                                       axi_port_master [N_MASTER_PORT],
-    
+
 `ifdef USE_CFG_BLOCK
 	`ifdef USE_AXI_LITE
 		AXI_LITE_BUS.Slave                                               cfg_port_slave,
@@ -82,32 +81,32 @@ module axi_node_wrap_with_slices
     	APB_BUS.Slave                                                    cfg_port_slave,
     `endif
 `endif
-    
+
     input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][31:0]  				 cfg_START_ADDR_i,
     input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][31:0]  				 cfg_END_ADDR_i,
     input  logic [N_REGION-1:0][N_MASTER_PORT-1:0]                       cfg_valid_rule_i,
-    input  logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]                   cfg_connectivity_map_i    
+    input  logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]                   cfg_connectivity_map_i
 );
 
     genvar i;
-      
-     AXI_BUS  
+
+     AXI_BUS
      #(
        .AXI_ADDR_WIDTH (AXI_ADDRESS_W),
        .AXI_DATA_WIDTH (AXI_DATA_W   ),
        .AXI_ID_WIDTH   (AXI_ID_IN    ),
        .AXI_USER_WIDTH (AXI_USER_W   )
-     ) 
+     )
      axi_slave[N_SLAVE_PORT]();
-      
-    AXI_BUS  
+
+    AXI_BUS
      #(
        .AXI_ADDR_WIDTH (AXI_ADDRESS_W),
        .AXI_DATA_WIDTH (AXI_DATA_W   ),
        .AXI_ID_WIDTH   (AXI_ID_OUT   ),
        .AXI_USER_WIDTH (AXI_USER_W   )
      ) axi_master [N_MASTER_PORT]();
-     
+
 
     axi_node_wrap
     #(
@@ -116,7 +115,7 @@ module axi_node_wrap_with_slices
         .AXI_DATA_W         ( AXI_DATA_W         ),
         .AXI_USER_W         ( AXI_USER_W         ),
 `ifdef USE_CFG_BLOCK
-  `ifdef USE_AXI_LITE   
+  `ifdef USE_AXI_LITE
         .AXI_LITE_ADDRESS_W ( AXI_LITE_ADDRESS_W ),
         .AXI_LITE_DATA_W    ( AXI_LITE_DATA_W    ),
         .AXI_LITE_BE_W      ( AXI_LITE_BE_W      ),
@@ -138,9 +137,9 @@ module axi_node_wrap_with_slices
         .rst_n                  ( rst_n                   ),
         .axi_port_slave         ( axi_slave               ),
         .axi_port_master        ( axi_master              ),
-    `ifdef USE_CFG_BLOCK                                  
+    `ifdef USE_CFG_BLOCK
         .cfg_port_slave         ( cfg_port_slave          ),
-    `endif                      
+    `endif
         .cfg_END_ADDR_i         ( cfg_END_ADDR_i          ),
         .cfg_START_ADDR_i       ( cfg_START_ADDR_i        ),
         .cfg_valid_rule_i       ( cfg_valid_rule_i        ),
@@ -164,12 +163,12 @@ module axi_node_wrap_with_slices
             i_axi_slice_wrap_master
             (
                 .clk_i          ( clk                ),
-                .rst_ni         ( rst_n              ), 
+                .rst_ni         ( rst_n              ),
                 .axi_slave      ( axi_master[i]      ), // from the node
                 .axi_master     ( axi_port_master[i] )  // to IO ports
             );
         end
-        
+
         for( i=0; i<N_SLAVE_PORT; i++ )
         begin : AXI_SLICE_SLAVE_PORT
             axi_slice_wrap

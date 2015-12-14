@@ -1,13 +1,12 @@
-// ============================================================================= //
-//                           COPYRIGHT NOTICE                                    //
-// Copyright 2014 Multitherman Laboratory - University of Bologna                //
-// ALL RIGHTS RESERVED                                                           //
-// This confidential and proprietary software may be used only as authorised by  //
-// a licensing agreement from Multitherman Laboratory - University of Bologna.   //
-// The entire notice above must be reproduced on all authorized copies and       //
-// copies may only be made to the extent permitted by a licensing agreement from //
-// Multitherman Laboratory - University of Bologna.                              //
-// ============================================================================= //
+// Copyright 2015 ETH Zurich and University of Bologna.
+// Copyright and related rights are licensed under the Solderpad Hardware
+// License, Version 0.51 (the “License”); you may not use this file except in
+// compliance with the License.  You may obtain a copy of the License at
+// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+// or agreed to in writing, software, hardware and materials distributed under
+// this License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
 
 // ============================================================================= //
 // Company:        Multitherman Laboratory @ DEIS - University of Bologna        //
@@ -73,7 +72,7 @@
 //                 .....                                                         //
 //                 .....                                                         //
 //                 @0x1000 --> CONNECTIVITY MAP MASTER 0                         //
-//                 @0x1004 --> CONNECTIVITY MAP MASTER 1                         //                                                      
+//                 @0x1004 --> CONNECTIVITY MAP MASTER 1                         //
 //                 @0x1008 --> CONNECTIVITY MAP MASTER 2                         //
 //                 @0x100C --> CONNECTIVITY MAP MASTER 3                         //
 //                 .....                                                         //
@@ -134,7 +133,7 @@ module axi_regs_top
     input  logic [N_REGION_MAX-1:0][N_MASTER_PORT-1:0][C_S_AXI_DATA_WIDTH-1:0]   init_END_ADDR_i,
     input  logic [N_REGION_MAX-1:0][N_MASTER_PORT-1:0]                           init_valid_rule_i,
     input  logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]                           init_connectivity_map_i,
- 
+
     output logic [N_REGION_MAX-1:0][N_MASTER_PORT-1:0][C_S_AXI_DATA_WIDTH-1:0]   START_ADDR_o,
     output logic [N_REGION_MAX-1:0][N_MASTER_PORT-1:0][C_S_AXI_DATA_WIDTH-1:0]   END_ADDR_o,
     output logic [N_REGION_MAX-1:0][N_MASTER_PORT-1:0]                           valid_rule_o,
@@ -358,7 +357,7 @@ module axi_regs_top
     begin
         always @(*)
         begin
-          for(w = 0; w < N_SLAVE_PORT; w++) 
+          for(w = 0; w < N_SLAVE_PORT; w++)
           begin
             init_connectivity_map_s[w][N_MASTER_PORT-1:0]                  = init_connectivity_map_i[w]; //there are w arrays, each is N_MASTER_PORT bit wide
             init_connectivity_map_s[w][C_S_AXI_DATA_WIDTH-1:N_MASTER_PORT] = '0;
@@ -369,16 +368,16 @@ module axi_regs_top
     begin
         always @(*)
         begin
-          for(w = 0; w < N_SLAVE_PORT; w++) 
+          for(w = 0; w < N_SLAVE_PORT; w++)
           begin
             init_connectivity_map_s[w]                  = init_connectivity_map_i[w]; //there are w arrays, each is N_MASTER_PORT bit wide
           end
         end
     end
-    
+
   endgenerate
-  
-  
+
+
 
 
   always_ff @( posedge s_axi_aclk, negedge s_axi_aresetn )
@@ -393,7 +392,7 @@ module axi_regs_top
               begin
                     cfg_reg[ (y*4) + (k*4*N_REGION_MAX) + 0]    <= init_START_ADDR_i [y][k];
                     cfg_reg[ (y*4) + (k*4*N_REGION_MAX) + 1]    <= init_END_ADDR_i   [y][k];
-                    
+
                     cfg_reg[ (y*4) + (k*4*N_REGION_MAX) + 2][0] <= init_valid_rule_i [y][k];
                     cfg_reg[ (y*4) + (k*4*N_REGION_MAX) + 2][C_S_AXI_DATA_WIDTH-1:1] <= '0;
 

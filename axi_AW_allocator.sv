@@ -1,13 +1,12 @@
-// ============================================================================= //
-//                           COPYRIGHT NOTICE                                    //
-// Copyright 2014 Multitherman Laboratory - University of Bologna                //
-// ALL RIGHTS RESERVED                                                           //
-// This confidential and proprietary software may be used only as authorised by  //
-// a licensing agreement from Multitherman Laboratory - University of Bologna.   //
-// The entire notice above must be reproduced on all authorized copies and       //
-// copies may only be made to the extent permitted by a licensing agreement from //
-// Multitherman Laboratory - University of Bologna.                              //
-// ============================================================================= //
+// Copyright 2015 ETH Zurich and University of Bologna.
+// Copyright and related rights are licensed under the Solderpad Hardware
+// License, Version 0.51 (the “License”); you may not use this file except in
+// compliance with the License.  You may obtain a copy of the License at
+// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+// or agreed to in writing, software, hardware and materials distributed under
+// this License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
 
 // ============================================================================= //
 // Company:        Multitherman Laboratory @ DEIS - University of Bologna        //
@@ -29,7 +28,7 @@
 //                                                                               //
 // Description:   Address Write Allocator: it performs a round robin arbitration //
 //                between pending write requests from each slave port.           //
-//                                                                               // 
+//                                                                               //
 // Revision:                                                                     //
 // Revision v0.1 - 01/02/2014 : File Created                                     //
 //                                                                               //
@@ -40,20 +39,20 @@
 //                                                                               //
 // ============================================================================= //
 
-module axi_AW_allocator 
+module axi_AW_allocator
 #(
       parameter  AXI_ADDRESS_W  = 32,
       parameter  AXI_USER_W     = 6,
       parameter  N_TARG_PORT    = 7,
       parameter  LOG_N_TARG     = $clog2(N_TARG_PORT),
-      parameter  AXI_ID_IN      = 16,  
+      parameter  AXI_ID_IN      = 16,
       parameter  AXI_ID_OUT     = AXI_ID_IN + $clog2(N_TARG_PORT)
 )
 (
       input  logic                                                          clk,
       input  logic                                                          rst_n,
 
-      //AXI write address bus ---------------------------------------------------------------- 
+      //AXI write address bus ----------------------------------------------------------------
       input  logic [N_TARG_PORT-1:0][AXI_ID_IN-1:0]          awid_i,     //
       input  logic [N_TARG_PORT-1:0][AXI_ADDRESS_W-1:0]      awaddr_i,   //
       input  logic [N_TARG_PORT-1:0][ 7:0]                   awlen_i,    //burst length is 1 + (0 - 15)
@@ -70,7 +69,7 @@ module axi_AW_allocator
       output logic [N_TARG_PORT-1:0]                         awready_o,  //slave ready to accept
 
 
-      //AXI write address bus--> OUT---------------------------------------------------------------- 
+      //AXI write address bus--> OUT----------------------------------------------------------------
       output  logic [AXI_ID_OUT-1:0]                         awid_o,     // Append the Master ID on the MSB bit
       output  logic [AXI_ADDRESS_W-1:0]                      awaddr_o,   //
       output  logic [ 7:0]                                   awlen_o,    //burst length is 1 + (0 - 15)
@@ -123,23 +122,23 @@ generate
   begin : AUX_VECTOR_BINDING
       assign AUX_VECTOR_IN[i] =  { awqos_i[i], awuser_i[i], awregion_i[i], awprot_i[i], awcache_i[i], awlock_i[i], awburst_i[i], awsize_i[i], awlen_i[i], awaddr_i[i], awid_i[i]};
   end
-  
+
   for(i=0;i<N_TARG_PORT;i++)
   begin : ID_VECTOR_BINDING
       assign ID_in[i][N_TARG_PORT-1:0] =  2**i; // OH ENCODING
       assign ID_in[i][LOG_N_TARG+N_TARG_PORT-1:N_TARG_PORT] =  i; //BIN ENCODING
-  end  
-  
+  end
+
 endgenerate
 
 
 
-      axi_ArbitrationTree 
+      axi_ArbitrationTree
       #(
             .AUX_WIDTH     ( AUX_WIDTH              ),
             .ID_WIDTH      ( LOG_N_TARG+N_TARG_PORT ),
             .N_MASTER      ( N_TARG_PORT            )
-      ) 
+      )
       AW_ARB_TREE
       (
             .clk           (  clk            ),
@@ -160,5 +159,5 @@ endgenerate
             .lock          (  1'b0           ),
             .SEL_EXCLUSIVE (  '0             )
       );
-    
+
 endmodule

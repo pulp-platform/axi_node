@@ -1,13 +1,12 @@
-// ============================================================================= //
-//                           COPYRIGHT NOTICE                                    //
-// Copyright 2014 Multitherman Laboratory - University of Bologna                //
-// ALL RIGHTS RESERVED                                                           //
-// This confidential and proprietary software may be used only as authorised by  //
-// a licensing agreement from Multitherman Laboratory - University of Bologna.   //
-// The entire notice above must be reproduced on all authorized copies and       //
-// copies may only be made to the extent permitted by a licensing agreement from //
-// Multitherman Laboratory - University of Bologna.                              //
-// ============================================================================= //
+// Copyright 2015 ETH Zurich and University of Bologna.
+// Copyright and related rights are licensed under the Solderpad Hardware
+// License, Version 0.51 (the “License”); you may not use this file except in
+// compliance with the License.  You may obtain a copy of the License at
+// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+// or agreed to in writing, software, hardware and materials distributed under
+// this License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
 
 // ============================================================================= //
 // Company:        Multitherman Laboratory @ DEIS - University of Bologna        //
@@ -42,12 +41,12 @@
 
 module axi_FanInPrimitive_Req
 #(
-      parameter AUX_WIDTH = 32, 
+      parameter AUX_WIDTH = 32,
       parameter ID_WIDTH = 16
 )
 (
       input logic                                       RR_FLAG,
-        
+
       // LEFT SIDE
       input  logic [AUX_WIDTH-1:0]                      data_AUX0_i,
       input  logic [AUX_WIDTH-1:0]                      data_AUX1_i,
@@ -57,21 +56,21 @@ module axi_FanInPrimitive_Req
       input  logic [ID_WIDTH-1:0]                       data_ID0_i,
       input  logic [ID_WIDTH-1:0]                       data_ID1_i,
       output logic                                      data_gnt0_o,
-      output logic                                      data_gnt1_o,    
+      output logic                                      data_gnt1_o,
       // RIGTH SIDE
       output logic [AUX_WIDTH-1:0]                      data_AUX_o,
       output logic                                      data_req_o,
-      output logic [ID_WIDTH-1:0]                       data_ID_o,       
+      output logic [ID_WIDTH-1:0]                       data_ID_o,
       input  logic                                      data_gnt_i,
-    
+
       input  logic                                      lock_EXCLUSIVE,
       input  logic                                      SEL_EXCLUSIVE
 );
-        
-        
-                      
+
+
+
         logic   SEL;
-        
+
         always_comb
         begin
           if(lock_EXCLUSIVE)
@@ -89,19 +88,19 @@ module axi_FanInPrimitive_Req
             SEL         =    ~data_req0_i | ( RR_FLAG & data_req1_i);
           end
         end
-        
-        
-        
-        
-        //MUXES AND DEMUXES 
+
+
+
+
+        //MUXES AND DEMUXES
         always_comb
         begin : FanIn_MUX2
-            case(SEL) 
+            case(SEL)
             1'b0:       begin //PRIORITY ON CH_0
                           data_AUX_o   = data_AUX0_i;
                           data_ID_o    = data_ID0_i;
                         end
-            
+
             1'b1:       begin //PRIORITY ON CH_1
                           data_AUX_o   = data_AUX1_i;
                           data_ID_o    = data_ID1_i;
@@ -109,7 +108,7 @@ module axi_FanInPrimitive_Req
 
             endcase
         end
-        
-        
-        
+
+
+
 endmodule

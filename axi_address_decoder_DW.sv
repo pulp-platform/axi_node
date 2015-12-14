@@ -1,13 +1,12 @@
-// ============================================================================= //
-//                           COPYRIGHT NOTICE                                    //
-// Copyright 2014 Multitherman Laboratory - University of Bologna                //
-// ALL RIGHTS RESERVED                                                           //
-// This confidential and proprietary software may be used only as authorised by  //
-// a licensing agreement from Multitherman Laboratory - University of Bologna.   //
-// The entire notice above must be reproduced on all authorized copies and       //
-// copies may only be made to the extent permitted by a licensing agreement from //
-// Multitherman Laboratory - University of Bologna.                              //
-// ============================================================================= //
+// Copyright 2015 ETH Zurich and University of Bologna.
+// Copyright and related rights are licensed under the Solderpad Hardware
+// License, Version 0.51 (the “License”); you may not use this file except in
+// compliance with the License.  You may obtain a copy of the License at
+// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+// or agreed to in writing, software, hardware and materials distributed under
+// this License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
 
 // ============================================================================= //
 // Company:        Multitherman Laboratory @ DEIS - University of Bologna        //
@@ -52,14 +51,14 @@ module axi_address_decoder_DW
     input  logic                       clk,
     input  logic                       rst_n,
     input  logic                       test_en_i,
-    
+
     input  logic                       wvalid_i,
     input  logic                       wlast_i,
     output logic                       wready_o,
-    
+
     output logic [N_INIT_PORT-1:0]     wvalid_o,
     input  logic [N_INIT_PORT-1:0]     wready_i,
-    
+
     output logic                       grant_FIFO_DEST_o,
     input  logic [N_INIT_PORT-1:0]     DEST_i,
     input  logic                       push_DEST_i,
@@ -71,13 +70,13 @@ module axi_address_decoder_DW
 
   logic                                valid_DEST;
   logic                                pop_from_DEST_FIFO;
-  logic [N_INIT_PORT-1:0]              DEST_int; 
- 
-  
-  
-  
-   generic_fifo 
-   #( 
+  logic [N_INIT_PORT-1:0]              DEST_int;
+
+
+
+
+   generic_fifo
+   #(
       .DATA_WIDTH(N_INIT_PORT),
       .DATA_DEPTH(FIFO_DEPTH)
    )
@@ -93,25 +92,25 @@ module axi_address_decoder_DW
       .valid_o      ( valid_DEST          ),
       .grant_i      ( pop_from_DEST_FIFO  )
    );
-  
-  
+
+
   assign pop_from_DEST_FIFO = wlast_i & wvalid_i & wready_o;
-  
+
   always_comb
   begin
-      
+
       if(handle_error_i)
       begin
           wready_o = 1'b1;
           wvalid_o = '0;
-          
+
           wdata_error_completed_o = wlast_i & wvalid_i;
       end
       else
       begin
           wready_o = |(wready_i & DEST_int);
           wdata_error_completed_o           = 1'b0;
-          
+
           if(wvalid_i & valid_DEST)
           begin
               wvalid_o  = {N_INIT_PORT{wvalid_i}} & DEST_int;
@@ -121,7 +120,7 @@ module axi_address_decoder_DW
               wvalid_o  = '0;
           end
       end
-      
+
   end
 
 endmodule

@@ -1,13 +1,12 @@
-// ============================================================================= //
-//                           COPYRIGHT NOTICE                                    //
-// Copyright 2014 Multitherman Laboratory - University of Bologna                //
-// ALL RIGHTS RESERVED                                                           //
-// This confidential and proprietary software may be used only as authorised by  //
-// a licensing agreement from Multitherman Laboratory - University of Bologna.   //
-// The entire notice above must be reproduced on all authorized copies and       //
-// copies may only be made to the extent permitted by a licensing agreement from //
-// Multitherman Laboratory - University of Bologna.                              //
-// ============================================================================= //
+// Copyright 2015 ETH Zurich and University of Bologna.
+// Copyright and related rights are licensed under the Solderpad Hardware
+// License, Version 0.51 (the “License”); you may not use this file except in
+// compliance with the License.  You may obtain a copy of the License at
+// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+// or agreed to in writing, software, hardware and materials distributed under
+// this License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
 
 // ============================================================================= //
 // Company:        Multitherman Laboratory @ DEIS - University of Bologna        //
@@ -24,7 +23,7 @@
 //                                                                               //
 // Create Date:    01/02/2014                                                    //
 // Design Name:    AXI 4 INTERCONNECT                                            //
-// Module Name:    axi_regs_top                                                  //
+// Module Name:    apb_regs_top                                                  //
 // Project Name:   PULP                                                          //
 // Language:       SystemVerilog                                                 //
 //                                                                               //
@@ -69,14 +68,14 @@
 //                                                                               //
 // ============================================================================= //
 
-module apb_regs_top 
+module apb_regs_top
 #(
     parameter APB_ADDR_WIDTH     = 12,  //APB slaves are 4KB by default
-    parameter APB_DATA_WIDTH     = 32, 
+    parameter APB_DATA_WIDTH     = 32,
     parameter N_REGION_MAX       = 4,
     parameter N_MASTER_PORT      = 16,
     parameter N_SLAVE_PORT       = 16
-) 
+)
 (
     input  logic                                                             HCLK,
     input  logic                                                             HRESETn,
@@ -93,7 +92,7 @@ module apb_regs_top
     input  logic [N_REGION_MAX-1:0][N_MASTER_PORT-1:0][31:0]                 init_END_ADDR_i,
     input  logic [N_REGION_MAX-1:0][N_MASTER_PORT-1:0]                       init_valid_rule_i,
     input  logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]                       init_connectivity_map_i,
- 
+
     output logic [N_REGION_MAX-1:0][N_MASTER_PORT-1:0][31:0]                 START_ADDR_o,
     output logic [N_REGION_MAX-1:0][N_MASTER_PORT-1:0][31:0]                 END_ADDR_o,
     output logic [N_REGION_MAX-1:0][N_MASTER_PORT-1:0]                       valid_rule_o,
@@ -109,16 +108,16 @@ module apb_regs_top
 
 
 
-   always @ (posedge HCLK /*or negedge HRESETn*/) //FIXME asynch reset 
+   always @ (posedge HCLK /*or negedge HRESETn*/) //FIXME asynch reset
    begin
-        if(~HRESETn) 
+        if(~HRESETn)
         begin
             cfg_req_START_ADDR       <= init_START_ADDR_i;
             cfg_req_END_ADDR         <= init_END_ADDR_i;
             cfg_req_valid_rule       <= init_valid_rule_i;
             cfg_req_connectivity_map <= init_connectivity_map_i;
         end
-        else 
+        else
         begin
             if (PSEL_i && PENABLE_i && PWRITE_i)
             begin
