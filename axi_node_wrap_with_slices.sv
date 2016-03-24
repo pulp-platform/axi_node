@@ -71,8 +71,8 @@ module axi_node_wrap_with_slices
     input logic                                                          rst_n,
 
     //MASTER PORTS
-    AXI_BUS.Slave                                                        axi_port_slave  [N_SLAVE_PORT],
-    AXI_BUS.Master                                                       axi_port_master [N_MASTER_PORT],
+    AXI_BUS.Slave                                                        axi_port_slave  [N_SLAVE_PORT-1:0],
+    AXI_BUS.Master                                                       axi_port_master [N_MASTER_PORT-1:0],
 
 `ifdef USE_CFG_BLOCK
 	`ifdef USE_AXI_LITE
@@ -105,7 +105,8 @@ module axi_node_wrap_with_slices
        .AXI_DATA_WIDTH (AXI_DATA_W   ),
        .AXI_ID_WIDTH   (AXI_ID_OUT   ),
        .AXI_USER_WIDTH (AXI_USER_W   )
-     ) axi_master [N_MASTER_PORT]();
+     )
+     axi_master [N_MASTER_PORT]();
 
 
     axi_node_wrap
