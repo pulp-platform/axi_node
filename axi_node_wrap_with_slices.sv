@@ -72,8 +72,8 @@ module axi_node_wrap_with_slices
     input logic                                                          test_en_i,
 
     //MASTER PORTS
-    AXI_BUS.Slave                                                        axi_port_slave  [N_SLAVE_PORT],
-    AXI_BUS.Master                                                       axi_port_master [N_MASTER_PORT],
+    AXI_BUS.Slave                                                        axi_port_slave  [N_SLAVE_PORT:N_SLAVE_PORT],
+    AXI_BUS.Master                                                       axi_port_master [N_MASTER_PORT:N_MASTER_PORT],
 
 `ifdef USE_CFG_BLOCK
     `ifdef USE_AXI_LITE
