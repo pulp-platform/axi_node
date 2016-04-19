@@ -66,6 +66,7 @@ module axi_node_wrap
 (
     input logic                                                          clk,
     input logic                                                          rst_n,
+    input logic                                                          test_en_i,
 
     //MASTER PORTS
     AXI_BUS.Slave                                                        axi_port_slave  [N_SLAVE_PORT],
@@ -431,6 +432,7 @@ AXI4_NODE
 (
   .clk(clk),
   .rst_n(rst_n),
+  .test_en_i(test_en_i),
 
   // ---------------------------------------------------------------
   // AXI TARG Port Declarations -----------------------------------------
