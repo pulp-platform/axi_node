@@ -157,7 +157,7 @@ endgenerate
             .data_gnt_i    (  awready_i      ),
 
             .lock          (  1'b0           ),
-            .SEL_EXCLUSIVE (  '0             )
+            .SEL_EXCLUSIVE (  {$clog2(N_TARG_PORT){1'b0}} )
       );
 
 endmodule
