@@ -102,7 +102,7 @@ module axi_address_decoder_AW
   assign DEST_o      = match_region[N_INIT_PORT-1:0];
   assign push_DEST_o = |(awvalid_i & awready_o) & ~error_detected;
 
-  enum logic [1:0]      {OPERATIVE, COMPLETE_PENDING, ACCEPT_WDATA , COMPLETE_ERROR_RESP } CS, NS;
+  enum logic [1:0]      { OPERATIVE, COMPLETE_PENDING, ACCEPT_WDATA , COMPLETE_ERROR_RESP } CS, NS;
 
 
   generate
