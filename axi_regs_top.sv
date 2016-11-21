@@ -393,8 +393,7 @@ module axi_regs_top
                     cfg_reg[ (y*4) + (k*4*N_REGION_MAX) + 0]    <= init_START_ADDR_i [y][k];
                     cfg_reg[ (y*4) + (k*4*N_REGION_MAX) + 1]    <= init_END_ADDR_i   [y][k];
 
-                    cfg_reg[ (y*4) + (k*4*N_REGION_MAX) + 2][0] <= init_valid_rule_i [y][k];
-                    cfg_reg[ (y*4) + (k*4*N_REGION_MAX) + 2][C_S_AXI_DATA_WIDTH-1:1] <= '0;
+                    cfg_reg[ (y*4) + (k*4*N_REGION_MAX) + 2]    <= {  {(C_S_AXI_DATA_WIDTH-1) {1'b0}} , init_valid_rule_i [y][k]};
 
                     cfg_reg[ (y*4) + (k*4*N_REGION_MAX) + 3]    <= 32'hDEADBEEF;
               end
