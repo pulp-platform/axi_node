@@ -150,8 +150,8 @@ logic                               sample_ardata_info;
 
 logic                               error_aw_req;
 logic                               error_aw_gnt;
-logic   [AXI_USER_W-1:0]            error_aw_user;
-logic   [AXI_ID_IN-1:0]             error_aw_id;
+//logic   [AXI_USER_W-1:0]            error_aw_user;
+//logic   [AXI_ID_IN-1:0]             error_aw_id;
 
 axi_BW_allocator
 #(
