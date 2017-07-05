@@ -80,8 +80,8 @@ module axi_node_wrap
         `endif
     `endif
 
-    input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][31:0]                 cfg_START_ADDR_i,
-    input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][31:0]                 cfg_END_ADDR_i,
+    input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][AXI_ADDRESS_W-1:0]    cfg_START_ADDR_i,
+    input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][AXI_ADDRESS_W-1:0]    cfg_END_ADDR_i,
     input  logic [N_REGION-1:0][N_MASTER_PORT-1:0]                       cfg_valid_rule_i,
     input  logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]                   cfg_connectivity_map_i
 );

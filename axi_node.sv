@@ -237,8 +237,8 @@ module axi_node
 `endif
 
    //Initial Memory map
-   input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][31:0]                      cfg_START_ADDR_i,
-   input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][31:0]                      cfg_END_ADDR_i,
+   input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][AXI_ADDRESS_W-1:0]         cfg_START_ADDR_i,
+   input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][AXI_ADDRESS_W-1:0]         cfg_END_ADDR_i,
    input  logic [N_REGION-1:0][N_MASTER_PORT-1:0]                            cfg_valid_rule_i,
    input  logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]                        cfg_connectivity_map_i
 );
@@ -279,10 +279,10 @@ logic [N_MASTER_PORT-1:0][N_SLAVE_PORT-1:0]                     rready_int_rever
 
 
 
-logic [N_REGION-1:0][N_MASTER_PORT-1:0][31:0]   START_ADDR;
-logic [N_REGION-1:0][N_MASTER_PORT-1:0][31:0]   END_ADDR;
-logic [N_REGION-1:0][N_MASTER_PORT-1:0]         valid_rule;
-logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]     connectivity_map;
+logic [N_REGION-1:0][N_MASTER_PORT-1:0][AXI_ADDRESS_W-1:0]      START_ADDR;
+logic [N_REGION-1:0][N_MASTER_PORT-1:0][AXI_ADDRESS_W-1:0]      END_ADDR;
+logic [N_REGION-1:0][N_MASTER_PORT-1:0]                         valid_rule;
+logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]                     connectivity_map;
 
 
 generate
