@@ -1,4 +1,4 @@
-// Copyright 2017 ETH Zurich and University of Bologna.
+// Copyright 2014-2018 ETH Zurich and University of Bologna.
 // Copyright and related rights are licensed under the Solderpad Hardware
 // License, Version 0.51 (the “License”); you may not use this file except in
 // compliance with the License.  You may obtain a copy of the License at
@@ -190,7 +190,7 @@ module axi_node_wrap_with_slices
                 .clk_i          ( clk               ),
                 .rst_ni         ( rst_n             ),
                 .test_en_i      ( test_en_i          ),
-                
+
                 .axi_slave      ( axi_port_slave[i] ), // from IO_ports
                 .axi_master     ( axi_slave[i]      )  // to axi_node
             );
