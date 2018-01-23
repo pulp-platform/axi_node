@@ -44,9 +44,9 @@
 
 module axi_address_decoder_BR
 #(
-   parameter N_TARG_PORT     = 8,
-   parameter AXI_ID_IN       = 16,
-   parameter AXI_ID_OUT      = AXI_ID_IN+$clog2(N_TARG_PORT)
+   parameter int unsigned N_TARG_PORT     = 8,
+   parameter int unsigned AXI_ID_IN       = 16,
+   parameter int unsigned AXI_ID_OUT      = AXI_ID_IN+$clog2(N_TARG_PORT)
 )
 (
    //AXI BACKWARD write response bus -----------------------------------------------------//
@@ -58,31 +58,25 @@ module axi_address_decoder_BR
    input  logic [N_TARG_PORT-1:0]         rready_i
 );
 
-   logic [N_TARG_PORT-1:0]                 req_mask;
-   logic [$clog2(N_TARG_PORT)-1:0]         ROUTING;
+   logic [N_TARG_PORT-1:0]                req_mask;
+   logic [$clog2(N_TARG_PORT)-1:0]        ROUTING;
 
 
-   assign ROUTING = rid_i[AXI_ID_IN+ $clog2(N_TARG_PORT)-1: AXI_ID_IN];
+   assign ROUTING = rid_i[AXI_ID_IN + $clog2(N_TARG_PORT) - 1:AXI_ID_IN];
 
-   always_comb
-   begin
+   always_comb begin
       req_mask = '0;
       req_mask[ROUTING] = 1'b1;
    end
 
-   always_comb
-   begin
-      if(rvalid_i)
-      begin
+   always_comb begin
+      if (rvalid_i) begin
          rvalid_o = {N_TARG_PORT{rvalid_i}} & req_mask;
-      end
-      else
-      begin
+      end else begin
          rvalid_o = '0;
       end
 
       rready_o = |(rready_i & req_mask);
-
    end
 
  endmodule

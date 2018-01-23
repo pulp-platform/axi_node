@@ -84,8 +84,6 @@ module axi_node
    input  logic [N_SLAVE_PORT-1:0][ 3:0]                                 slave_awqos_i,  //
    input  logic [N_SLAVE_PORT-1:0]                                       slave_awvalid_i,        //master addr valid
    output logic [N_SLAVE_PORT-1:0]                                       slave_awready_o,        //slave ready to accept
-   // ---------------------------------------------------------------
-
    //AXI write data bus -------------- // USED// --------------
    input  logic [N_SLAVE_PORT-1:0] [AXI_DATA_W-1:0]                      slave_wdata_i,
    input  logic [N_SLAVE_PORT-1:0] [AXI_NUMBYTES-1:0]                    slave_wstrb_i,   //1 strobe per byte
@@ -93,18 +91,12 @@ module axi_node
    input  logic [N_SLAVE_PORT-1:0][AXI_USER_W-1:0]                       slave_wuser_i,   // User sideband signal
    input  logic [N_SLAVE_PORT-1:0]                                       slave_wvalid_i,  //master data valid
    output logic [N_SLAVE_PORT-1:0]                                       slave_wready_o,  //slave ready to accept
-   // ---------------------------------------------------------------
-
    //AXI write response bus -------------- // USED// --------------
    output  logic [N_SLAVE_PORT-1:0]  [AXI_ID_IN-1:0]                     slave_bid_o,
    output  logic [N_SLAVE_PORT-1:0]  [ 1:0]                              slave_bresp_o,
    output  logic [N_SLAVE_PORT-1:0]                                      slave_bvalid_o,
    output  logic [N_SLAVE_PORT-1:0]  [AXI_USER_W-1:0]                    slave_buser_o,   // User sideband signal
    input   logic [N_SLAVE_PORT-1:0]                                      slave_bready_i,
-   // ---------------------------------------------------------------
-
-
-
    //AXI read address bus -------------------------------------------
    input  logic [N_SLAVE_PORT-1:0][AXI_ID_IN-1:0]                        slave_arid_i,
    input  logic [N_SLAVE_PORT-1:0][AXI_ADDRESS_W-1:0]                    slave_araddr_i,
@@ -119,9 +111,6 @@ module axi_node
    input  logic [N_SLAVE_PORT-1:0][ 3:0]                                 slave_arqos_i,  //
    input  logic [N_SLAVE_PORT-1:0]                                       slave_arvalid_i, //master addr valid
    output logic [N_SLAVE_PORT-1:0]                                       slave_arready_o, //slave ready to accept
-   // ---------------------------------------------------------------
-
-
    //AXI read data bus ----------------------------------------------
    output logic [N_SLAVE_PORT-1:0][AXI_ID_IN-1:0]                        slave_rid_o,
    output logic [N_SLAVE_PORT-1:0][AXI_DATA_W-1:0]                       slave_rdata_o,
@@ -130,12 +119,6 @@ module axi_node
    output logic [N_SLAVE_PORT-1:0][AXI_USER_W-1:0]                       slave_ruser_o,   //last transfer in burst
    output logic [N_SLAVE_PORT-1:0]                                       slave_rvalid_o,  //slave data valid
    input  logic [N_SLAVE_PORT-1:0]                                       slave_rready_i,   //master ready to accept
-   // ---------------------------------------------------------------
-
-
-
-
-
    // ---------------------------------------------------------------
    // AXI INIT Port Declarations -----------------------------------------
    // ---------------------------------------------------------------
@@ -172,8 +155,6 @@ module axi_node
    output logic [N_MASTER_PORT-1:0]                                      master_bready_o,
    // ---------------------------------------------------------------
 
-
-
    //AXI read address bus -------------------------------------------
    output  logic [N_MASTER_PORT-1:0][AXI_ID_OUT-1:0]                     master_arid_o,
    output  logic [N_MASTER_PORT-1:0][AXI_ADDRESS_W-1:0]                  master_araddr_o,
@@ -190,7 +171,6 @@ module axi_node
    input logic [N_MASTER_PORT-1:0]                                       master_arready_i, //slave ready to accept
    // ---------------------------------------------------------------
 
-
    //AXI BACKWARD read data bus ----------------------------------------------
    input  logic [N_MASTER_PORT-1:0][AXI_ID_OUT-1:0]                      master_rid_i,
    input  logic [N_MASTER_PORT-1:0][AXI_DATA_W-1:0]                      master_rdata_i,
@@ -199,9 +179,6 @@ module axi_node
    input  logic [N_MASTER_PORT-1:0][ AXI_USER_W-1:0]                     master_ruser_i,
    input  logic [N_MASTER_PORT-1:0]                                      master_rvalid_i,  //slave data valid
    output logic [N_MASTER_PORT-1:0]                                      master_rready_o,   //master ready to accept
-   // ---------------------------------------------------------------
-
-
 `ifdef USE_CFG_BLOCK
     `ifdef USE_AXI_LITE
        //PROGRAMMABLE PORT -- AXI LITE
@@ -237,13 +214,11 @@ module axi_node
 `endif
 
    //Initial Memory map
-   input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][31:0]                      cfg_START_ADDR_i,
-   input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][31:0]                      cfg_END_ADDR_i,
+   input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][AXI_ADDRESS_W-1:0]         cfg_START_ADDR_i,
+   input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][AXI_ADDRESS_W-1:0]         cfg_END_ADDR_i,
    input  logic [N_REGION-1:0][N_MASTER_PORT-1:0]                            cfg_valid_rule_i,
    input  logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]                        cfg_connectivity_map_i
 );
-
-
 
 genvar i,j,k;
 
@@ -279,10 +254,10 @@ logic [N_MASTER_PORT-1:0][N_SLAVE_PORT-1:0]                     rready_int_rever
 
 
 
-logic [N_REGION-1:0][N_MASTER_PORT-1:0][31:0]   START_ADDR;
-logic [N_REGION-1:0][N_MASTER_PORT-1:0][31:0]   END_ADDR;
-logic [N_REGION-1:0][N_MASTER_PORT-1:0]         valid_rule;
-logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]     connectivity_map;
+logic [N_REGION-1:0][N_MASTER_PORT-1:0][AXI_ADDRESS_W-1:0]      START_ADDR;
+logic [N_REGION-1:0][N_MASTER_PORT-1:0][AXI_ADDRESS_W-1:0]      END_ADDR;
+logic [N_REGION-1:0][N_MASTER_PORT-1:0]                         valid_rule;
+logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]                     connectivity_map;
 
 
 generate
@@ -326,8 +301,6 @@ begin : _REQ_BLOCK_GEN
      .clk         (   clk                   ),
      .rst_n       (   rst_n                 ),
      .test_en_i   (   test_en_i             ),
-
-
      // -----------------------------------------------------------------------------------//
      //                           INTERNAL (N_TARGET PORT )                                //
      // -----------------------------------------------------------------------------------//
@@ -345,8 +318,6 @@ begin : _REQ_BLOCK_GEN
      .awqos_i     (  slave_awqos_i          ), //
      .awvalid_i   (  awvalid_int_reverse[i] ), //master addr valid
      .awready_o   (  awready_int[i]         ), //slave ready to accept
-     // -----------------------------------------------------------------------------------//
-
      //AXI write data bus -----------------------------------------------------------------//
      .wdata_i    (  slave_wdata_i           ),
      .wstrb_i    (  slave_wstrb_i           ), //1 strobe per byte
@@ -354,9 +325,6 @@ begin : _REQ_BLOCK_GEN
      .wuser_i    (  slave_wuser_i           ),
      .wvalid_i   (  wvalid_int_reverse[i]   ), //master data valid
      .wready_o   (  wready_int[i]           ), //slave ready to accept
-     // -----------------------------------------------------------------------------------//
-
-
      //AXI read address bus ---------------------------------------------------------------//
      .arid_i     (  slave_arid_i            ),
      .araddr_i   (  slave_araddr_i          ),
@@ -371,9 +339,6 @@ begin : _REQ_BLOCK_GEN
      .arqos_i    (  slave_arqos_i           ), //
      .arvalid_i  (  arvalid_int_reverse[i]  ), //master addr valid
      .arready_o  (  arready_int[i]          ), //slave ready to accept
-     // -----------------------------------------------------------------------------------//
-
-
      // ------------------------------------------------------------------------------------//
      //                           SLAVE SIDE (ONE PORT ONLY)                                //
      // ------------------------------------------------------------------------------------//
@@ -384,8 +349,6 @@ begin : _REQ_BLOCK_GEN
      // To BW ALLOC --> FROM BW DECODER
      .bvalid_o   (  bvalid_int[i]           ),
      .bready_i   (  bready_int_reverse[i]   ),
-
-
      //AXI BACKWARD read data bus ----------------------------------------------------------//
      .rid_i     (  master_rid_i[i]          ),
      .rvalid_i  (  master_rvalid_i[i]       ),   //slave data valid
@@ -393,10 +356,6 @@ begin : _REQ_BLOCK_GEN
      // To BR ALLOC --> FROM BW DECODER
      .rvalid_o  (  rvalid_int[i]            ),
      .rready_i  (  rready_int_reverse[i]    ),
-
-
-
-
      //AXI write address bus --------------------------------------------------------------//
      .awid_o    (  master_awid_o[i]         ), //
      .awaddr_o  (  master_awaddr_o[i]       ), //
@@ -411,8 +370,6 @@ begin : _REQ_BLOCK_GEN
      .awqos_o   (  master_awqos_o[i]        ), //
      .awvalid_o (  master_awvalid_o[i]      ), //master addr valid
      .awready_i (  master_awready_i[i]      ), //slave ready to accept
-     // -----------------------------------------------------------------------------------//
-
      //AXI write data bus -----------------------------------------------------------------//
      .wdata_o  (  master_wdata_o[i]         ),
      .wstrb_o  (  master_wstrb_o[i]         ), //1 strobe per byte
@@ -420,9 +377,6 @@ begin : _REQ_BLOCK_GEN
      .wuser_o  (  master_wuser_o[i]         ),
      .wvalid_o (  master_wvalid_o[i]        ), //master data valid
      .wready_i (  master_wready_i[i]        ), //slave ready to accept
-     // -----------------------------------------------------------------------------------//
-
-
      //AXI read address bus ---------------------------------------------------------------//
      .arid_o    (  master_arid_o[i]         ),
      .araddr_o  (  master_araddr_o[i]       ),
@@ -441,12 +395,7 @@ begin : _REQ_BLOCK_GEN
    );
 end
 
-
-
-
-
-for(i=0; i<N_SLAVE_PORT; i++)
-begin : _RESP_BLOCK_GEN
+for (i = 0; i < N_SLAVE_PORT; i++) begin : _RESP_BLOCK_GEN
 axi_response_block
 #(
     .AXI_ADDRESS_W  (AXI_ADDRESS_W ),
@@ -637,11 +586,8 @@ endgenerate
     assign connectivity_map = cfg_connectivity_map_i;
 
     generate
-
-      for(i=0; i<N_REGION; i++)
-      begin : _VALID_RULE_REGION
-        for(j=0; j<N_MASTER_PORT; j++)
-        begin : _VALID_RULE_MASTER
+      for (i = 0; i < N_REGION; i++) begin : _VALID_RULE_REGION
+        for (j = 0; j < N_MASTER_PORT; j++) begin : _VALID_RULE_MASTER
           assign valid_rule[i][j] = cfg_valid_rule_i[i][j];
         end
       end
