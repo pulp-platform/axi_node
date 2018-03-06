@@ -116,23 +116,29 @@ endgenerate
 
 assign {wdata_o,wstrb_o,wlast_o,wuser_o} = AUX_VECTOR_OUT;
 
-generic_fifo #(
+logic empty, full;
+fifo #(
+    .FALL_THROUGH(1'b0),
     .DATA_WIDTH(LOG_N_TARG+N_TARG_PORT),
-    .DATA_DEPTH(FIFO_DEPTH)
+    .DEPTH(FIFO_DEPTH)
 )
 MASTER_ID_FIFO
 (
-    .clk          (clk              ),
-    .rst_n        (rst_n            ),
-    .test_mode_i  (test_en_i        ),
+    .clk_i        (clk              ),
+    .rst_ni       (rst_n            ),
+    .flush_i      ( 1'b0            ),
+    .testmode_i   (test_en_i        ),
+    .threshold_o  ( ), // open
     .data_i       (ID_i             ),
-    .valid_i      (push_ID_i        ),
-    .grant_o      (grant_FIFO_ID_o  ),
+    .push_i       (push_ID_i        ),
+    .full_o       (full             ),
     .data_o       (ID_int           ),
-    .valid_o      (valid_ID         ),
-    .grant_i      (pop_from_ID_FIFO )
+    .empty_o      (empty            ),
+    .pop_i        (pop_from_ID_FIFO )
 );
 
+assign valid_ID = ~empty;
+assign grant_FIFO_ID_o = ~full;
 
   assign  ID_int_BIN = ID_int[LOG_N_TARG+N_TARG_PORT-1:N_TARG_PORT];
   assign  ID_int_OH  = ID_int[N_TARG_PORT-1:0];

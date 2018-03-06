@@ -73,26 +73,27 @@ module axi_address_decoder_DW
   logic [N_INIT_PORT-1:0]              DEST_int;
 
 
-
-
-   generic_fifo
-   #(
+  logic empty, full;
+  fifo #(
+      .FALL_THROUGH(1'b0),
       .DATA_WIDTH(N_INIT_PORT),
-      .DATA_DEPTH(FIFO_DEPTH)
-   )
-   MASTER_ID_FIFO
-   (
-      .clk          ( clk                 ),
-      .rst_n        ( rst_n               ),
-      .test_mode_i  ( test_en_i           ),
-      .data_i       ( DEST_i              ),
-      .valid_i      ( push_DEST_i         ),
-      .grant_o      ( grant_FIFO_DEST_o   ),
-      .data_o       ( DEST_int            ),
-      .valid_o      ( valid_DEST          ),
-      .grant_i      ( pop_from_DEST_FIFO  )
-   );
+      .DEPTH(FIFO_DEPTH)
+  ) MASTER_ID_FIFO (
+      .clk_i        (clk              ),
+      .rst_ni       (rst_n            ),
+      .testmode_i   (test_en_i        ),
+      .flush_i      (1'b0             ),
+      .threshold_o  ( ), // open
+      .data_i       (DEST_i             ),
+      .push_i       (push_DEST_i        ),
+      .full_o       (full               ),
+      .data_o       (DEST_int           ),
+      .empty_o      (empty              ),
+      .pop_i        (pop_from_DEST_FIFO )
+  );
 
+  assign grant_FIFO_DEST_o = ~full;
+  assign valid_DEST = ~empty;
 
   assign pop_from_DEST_FIFO = wlast_i & wvalid_i & wready_o;
 
