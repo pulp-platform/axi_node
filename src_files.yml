@@ -18,7 +18,7 @@ axi_node:
     axi_FanInPrimitive_Req.sv,
     axi_multiplexer.sv,
     axi_node.sv,
-    axi_node_wrap.sv,
+    axi_node_intf_wrap.sv,
     axi_node_wrap_with_slices.sv,
     axi_regs_top.sv,
     axi_request_block.sv,
