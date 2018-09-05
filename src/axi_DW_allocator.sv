@@ -117,7 +117,7 @@ endgenerate
 assign {wdata_o,wstrb_o,wlast_o,wuser_o} = AUX_VECTOR_OUT;
 
 logic empty, full;
-fifo #(
+fifo_v2 #(
     .FALL_THROUGH(1'b0),
     .DATA_WIDTH(LOG_N_TARG+N_TARG_PORT),
     .DEPTH(FIFO_DEPTH)
@@ -128,7 +128,8 @@ MASTER_ID_FIFO
     .rst_ni       (rst_n            ),
     .flush_i      ( 1'b0            ),
     .testmode_i   (test_en_i        ),
-    .threshold_o  ( ), // open
+    .alm_full_o   ( ), // open
+    .alm_empty_o  ( ), // open
     .data_i       (ID_i             ),
     .push_i       (push_ID_i        ),
     .full_o       (full             ),
