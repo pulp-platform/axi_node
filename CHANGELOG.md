@@ -12,22 +12,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.0.3
 
 ### Changed
-- Adopt to real generic FIFO
+- Adopt to real generic FIFO.
+- Replace non-ASCII characters in headers.
+- Rename `axi_node_wrap.sv` to `axi_node_intf_wrap.sv` in accordance with module name.
 
 ## 1.0.2
 
 ### Added
-- Benderize (add Bender.yml file)
+- Benderize (add Bender.yml file).
 
 ## 1.0.1
 
 ### Changed
-- Bugfixes for 64-bit support on address line
+- Bugfixes for 64-bit support on address line.
 
 ## 1.0.0
 
 ### Changed
-- Open source release
+- Open source release.
 
 ### Added
-- Initial commit
+- Initial commit.
