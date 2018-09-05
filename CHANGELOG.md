@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+### Changed
+- Change common cells source URL and minimum version requirement to 1.7.3.
+
 ## 1.0.3
 
 ### Changed

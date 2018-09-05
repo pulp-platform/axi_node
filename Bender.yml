@@ -3,7 +3,7 @@ package:
   description: "An efficient AXI4 interconnect."
 
 dependencies:
-  common_cells: { git: "git@iis-git.ee.ethz.ch:sasa/common_cells.git", version: 1.1.0 }
+  common_cells: { git: "https://github.com/pulp-platform/common_cells", version: 1.7.3 }
 
 sources:
   - src/apb_regs_top.sv
