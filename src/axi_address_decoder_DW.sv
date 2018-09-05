@@ -74,7 +74,7 @@ module axi_address_decoder_DW
 
 
   logic empty, full;
-  fifo #(
+  fifo_v2 #(
       .FALL_THROUGH(1'b0),
       .DATA_WIDTH(N_INIT_PORT),
       .DEPTH(FIFO_DEPTH)
@@ -83,7 +83,8 @@ module axi_address_decoder_DW
       .rst_ni       (rst_n            ),
       .testmode_i   (test_en_i        ),
       .flush_i      (1'b0             ),
-      .threshold_o  ( ), // open
+      .alm_full_o   ( ), // open
+      .alm_empty_o  ( ), // open
       .data_i       (DEST_i             ),
       .push_i       (push_DEST_i        ),
       .full_o       (full               ),
