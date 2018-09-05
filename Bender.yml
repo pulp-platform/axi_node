@@ -21,7 +21,7 @@ sources:
   - src/axi_FanInPrimitive_Req.sv
   - src/axi_multiplexer.sv
   - src/axi_node.sv
-  - src/axi_node_wrap.sv
+  - src/axi_node_intf_wrap.sv
   - src/axi_node_wrap_with_slices.sv
   - src/axi_regs_top.sv
   - src/axi_request_block.sv
