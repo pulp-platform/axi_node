@@ -95,7 +95,7 @@ module axi_address_decoder_DW
   assign grant_FIFO_DEST_o = ~full;
   assign valid_DEST = ~empty;
 
-  assign pop_from_DEST_FIFO = wlast_i & wvalid_i & wready_o;
+  assign pop_from_DEST_FIFO = wlast_i & wvalid_i & wready_o & valid_DEST;
 
   always_comb
   begin
