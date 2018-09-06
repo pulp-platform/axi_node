@@ -6,31 +6,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.0.4 - 2018-09-06
 ### Changed
 - Change common cells source URL and minimum version requirement to 1.7.3.
 
 ### Fixed
 - Prevent reading from empty FIFO in `axi_address_decoder_DW.sv`.
 
-## 1.0.3
-
+## 1.0.3 - 2018-03-06
 ### Changed
 - Adopt to real generic FIFO.
 - Replace non-ASCII characters in headers.
 - Rename `axi_node_wrap.sv` to `axi_node_intf_wrap.sv` in accordance with module name.
 
-## 1.0.2
-
+## 1.0.2 - 2018-03-06
 ### Added
 - Benderize (add Bender.yml file).
 
-## 1.0.1
-
+## 1.0.1 - 2018-03-06
 ### Changed
 - Bugfixes for 64-bit support on address line.
 
-## 1.0.0
-
+## 1.0.0 - 2018-03-06
 ### Changed
 - Open source release.
 
