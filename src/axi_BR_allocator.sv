@@ -39,10 +39,7 @@
 //                                                                               //
 // ============================================================================= //
 
-`include "defines.v"
-
-module axi_BR_allocator
-#(
+module axi_BR_allocator #(
     parameter                   AXI_USER_W     = 6,
     parameter                   N_INIT_PORT    = 1,
     parameter                   N_TARG_PORT    = 7,
@@ -51,8 +48,7 @@ module axi_BR_allocator
     parameter                   LOG_N_TARG     = $clog2(N_TARG_PORT),
     parameter                   LOG_N_INIT     = $clog2(N_INIT_PORT),
     parameter                   AXI_ID_OUT     = AXI_ID_IN + $clog2(N_TARG_PORT)
-)
-(
+)(
   input  logic                                                          clk,
   input  logic                                                          rst_n,
 
@@ -270,7 +266,7 @@ begin
         rready_ARB_TREE = 1'b0;
         CounterBurstNS = '0;
         error_gnt_o = 1'b1;
-        rresp_o     = `DECERR;
+        rresp_o     = axi_pkg::RESP_DECERR;
         rdata_o     = { (AXI_DATA_W/32) {32'hDEADBEEF}};
         rvalid_o    = 1'b1;
         ruser_o     = error_user_S;
@@ -290,7 +286,7 @@ begin
 
         rready_ARB_TREE = 1'b0;
 
-        rresp_o     = `DECERR;
+        rresp_o     = axi_pkg::RESP_DECERR;
         rdata_o     = { (AXI_DATA_W/32) {32'hDEADBEEF}};
         rvalid_o    = 1'b1;
         ruser_o     = error_user_S;

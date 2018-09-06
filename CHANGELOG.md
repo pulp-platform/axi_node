@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Change common cells source URL and minimum version requirement to 1.7.3.
+- Remove defines and switch to common `axi_pkg`
+- Switch to common interface for wrappers (including slices), slices from common axi repo
 
 ### Fixed
 - Prevent reading from empty FIFO in `axi_address_decoder_DW.sv`.

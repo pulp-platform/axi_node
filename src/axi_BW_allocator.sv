@@ -39,19 +39,14 @@
 //                                                                               //
 // ============================================================================= //
 
-
-`include "defines.v"
-
-module axi_BW_allocator
-#(
+module axi_BW_allocator #(
     parameter                   AXI_USER_W     = 6,
     parameter                   N_INIT_PORT    = 1,
     parameter                   N_TARG_PORT    = 7,
     parameter                   AXI_DATA_W     = 64,
     parameter                   AXI_ID_IN      = 16,
     parameter                   AXI_ID_OUT     = AXI_ID_IN + $clog2(N_TARG_PORT)
-)
-(
+)(
   input  logic                                                          clk,
   input  logic                                                          rst_n,
 
@@ -224,7 +219,7 @@ begin
     begin
         bready_ARB_TREE = 1'b0;
         error_gnt_o = 1'b1;
-        bresp_o     = `DECERR;
+        bresp_o     = axi_pkg::RESP_DECERR;
         bvalid_o    = 1'b1;
         buser_o     = error_user_S;
         bid_o       = error_id_S;
