@@ -1,9 +1,10 @@
 package:
   name: axi_node
-  description: "An efficient AXI4 interconnect."
+  description: "An efficient AXI4 interconnect"
 
 dependencies:
-  common_cells: { git: "https://github.com/pulp-platform/common_cells", version: 1.7.3 }
+  common_cells: { git: "https://github.com/pulp-platform/common_cells", version: 1.7.4 }
+  axi: { git: "https://github.com/pulp-platform/axi", version: 0.4.3 }
 
 sources:
   - src/apb_regs_top.sv
