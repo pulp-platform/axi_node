@@ -38,10 +38,7 @@
 //                                                                               //
 // ============================================================================= //
 
-`include "defines.v"
-
-module axi_node
-#(
+module axi_node #(
    parameter                   AXI_ADDRESS_W      = 32,
    parameter                   AXI_DATA_W         = 64,
    parameter                   AXI_NUMBYTES       = AXI_DATA_W/8,
@@ -62,8 +59,7 @@ module axi_node
    parameter                   AXI_ID_OUT         = AXI_ID_IN + $clog2(N_SLAVE_PORT),
    parameter                   FIFO_DEPTH_DW      = 8,
    parameter                   N_REGION           = 2
-)
-(
+)(
    input logic                                                           clk,
    input logic                                                           rst_n,
    input logic                                                           test_en_i,

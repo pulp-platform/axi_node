@@ -8,16 +8,14 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
-module axi_node_intf_wrap
-  #(
+module axi_node_intf_wrap #(
     parameter NB_MASTER      = 4,
     parameter NB_SLAVE       = 4,
     parameter AXI_ADDR_WIDTH = 32,
     parameter AXI_DATA_WIDTH = 32,
     parameter AXI_ID_WIDTH   = 10,
     parameter AXI_USER_WIDTH = 0
-    )
-  (
+  )(
     // Clock and Reset
     input logic clk,
     input logic rst_n,

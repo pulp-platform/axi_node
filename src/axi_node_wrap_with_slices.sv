@@ -38,164 +38,86 @@
 //                                                                               //
 // ============================================================================= //
 
-`include "defines.v"
-
-module axi_node_wrap_with_slices
-#(
-
-    parameter                   AXI_ADDRESS_W      = 32,
-    parameter                   AXI_DATA_W         = 64,
-    parameter                   AXI_NUMBYTES       = AXI_DATA_W/8,
-    parameter                   AXI_USER_W         = 6,
-`ifdef USE_CFG_BLOCK
-  `ifdef USE_AXI_LITE
-    parameter                   AXI_LITE_ADDRESS_W = 32,
-    parameter                   AXI_LITE_DATA_W    = 32,
-    parameter                   AXI_LITE_BE_W      = AXI_LITE_DATA_W/8,
-  `else
-    parameter                   APB_ADDR_WIDTH     = 12,  //APB slaves are 4KB by default
-    parameter                   APB_DATA_WIDTH     = 32,
-  `endif
-`endif
-    parameter                   N_MASTER_PORT      = 8,
-    parameter                   N_SLAVE_PORT       = 4,
-    parameter                   AXI_ID_IN          = 4,
-    parameter                   AXI_ID_OUT         = AXI_ID_IN + $clog2(N_SLAVE_PORT),
-    parameter                   FIFO_DEPTH_DW      = 4,
-    parameter                   N_REGION           = 4,
-    parameter                   MASTER_SLICE_DEPTH = 2,
-    parameter                   SLAVE_SLICE_DEPTH  = 2
-)
-(
-    input logic                                                          clk,
-    input logic                                                          rst_n,
-    input logic                                                          test_en_i,
-
-    //MASTER PORTS
-    AXI_BUS.Slave                                                        axi_port_slave  [N_SLAVE_PORT-1:0],
-    AXI_BUS.Master                                                       axi_port_master [N_MASTER_PORT-1:0],
-
-`ifdef USE_CFG_BLOCK
-    `ifdef USE_AXI_LITE
-        AXI_LITE_BUS.Slave                                               cfg_port_slave,
-    `else
-        APB_BUS.Slave                                                    cfg_port_slave,
-    `endif
-`endif
-
-    input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][31:0]                 cfg_START_ADDR_i,
-    input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][31:0]                 cfg_END_ADDR_i,
-    input  logic [N_REGION-1:0][N_MASTER_PORT-1:0]                       cfg_valid_rule_i,
-    input  logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]                   cfg_connectivity_map_i
+module axi_node_wrap_with_slices #(
+    parameter NB_MASTER          = 4,
+    parameter NB_SLAVE           = 4,
+    parameter AXI_ADDR_WIDTH     = 32,
+    parameter AXI_DATA_WIDTH     = 32,
+    parameter AXI_ID_WIDTH       = 10,
+    parameter AXI_USER_WIDTH     = 0,
+    parameter MASTER_SLICE_DEPTH = 0,
+    parameter SLAVE_SLICE_DEPTH  = 0
+)(
+    input logic      clk,
+    input logic      rst_n,
+    input logic      test_en_i,
+    AXI_BUS.Slave    slave  [NB_SLAVE-1:0],
+    AXI_BUS.Master   master [NB_MASTER-1:0],
+    // Memory map
+    input  logic [NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0] start_addr_i,
+    input  logic [NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0] end_addr_i
 );
+    localparam AXI_ID_OUT = AXI_ID_WIDTH + $clog2(NB_SLAVE);
 
-    genvar i;
+    AXI_BUS #(
+      .AXI_ADDR_WIDTH ( AXI_ADDR_WIDTH  ),
+      .AXI_DATA_WIDTH ( AXI_DATA_WIDTH  ),
+      .AXI_ID_WIDTH   ( AXI_ID_WIDTH    ),
+      .AXI_USER_WIDTH ( AXI_USER_WIDTH  )
+    ) axi_slave [NB_SLAVE]();
 
-     AXI_BUS
-     #(
-       .AXI_ADDR_WIDTH (AXI_ADDRESS_W),
-       .AXI_DATA_WIDTH (AXI_DATA_W   ),
-       .AXI_ID_WIDTH   (AXI_ID_IN    ),
-       .AXI_USER_WIDTH (AXI_USER_W   )
-     )
-     axi_slave[N_SLAVE_PORT]();
-
-    AXI_BUS
-     #(
-       .AXI_ADDR_WIDTH (AXI_ADDRESS_W),
-       .AXI_DATA_WIDTH (AXI_DATA_W   ),
-       .AXI_ID_WIDTH   (AXI_ID_OUT   ),
-       .AXI_USER_WIDTH (AXI_USER_W   )
-     )
-     axi_master [N_MASTER_PORT]();
+    AXI_BUS #(
+       .AXI_ADDR_WIDTH ( AXI_ADDR_WIDTH ),
+       .AXI_DATA_WIDTH ( AXI_DATA_WIDTH ),
+       .AXI_ID_WIDTH   ( AXI_ID_OUT     ),
+       .AXI_USER_WIDTH ( AXI_USER_WIDTH )
+    ) axi_master [NB_MASTER]();
 
 
-    axi_node_wrap
-    #(
-
-        .AXI_ADDRESS_W      ( AXI_ADDRESS_W      ),
-        .AXI_DATA_W         ( AXI_DATA_W         ),
-        .AXI_USER_W         ( AXI_USER_W         ),
-`ifdef USE_CFG_BLOCK
-  `ifdef USE_AXI_LITE
-        .AXI_LITE_ADDRESS_W ( AXI_LITE_ADDRESS_W ),
-        .AXI_LITE_DATA_W    ( AXI_LITE_DATA_W    ),
-        .AXI_LITE_BE_W      ( AXI_LITE_BE_W      ),
-   `else
-        .APB_ADDR_WIDTH     ( APB_ADDR_WIDTH     ),
-        .APB_DATA_WIDTH     ( APB_DATA_WIDTH     ),
-   `endif
-`endif
-        .N_MASTER_PORT      ( N_MASTER_PORT      ),
-        .N_SLAVE_PORT       ( N_SLAVE_PORT       ),
-        .AXI_ID_IN          ( AXI_ID_IN          ),
-        .AXI_ID_OUT         ( AXI_ID_OUT         ),
-        .FIFO_DEPTH_DW      ( FIFO_DEPTH_DW      ),
-        .N_REGION           ( N_REGION           )
-    )
-    i_axi_node_wrap
-    (
-        .clk                    ( clk                     ),
-        .rst_n                  ( rst_n                   ),
-        .test_en_i              ( test_en_i               ),
-
-        .axi_port_slave         ( axi_slave               ),
-        .axi_port_master        ( axi_master              ),
-    `ifdef USE_CFG_BLOCK
-        .cfg_port_slave         ( cfg_port_slave          ),
-    `endif
-        .cfg_END_ADDR_i         ( cfg_END_ADDR_i          ),
-        .cfg_START_ADDR_i       ( cfg_START_ADDR_i        ),
-        .cfg_valid_rule_i       ( cfg_valid_rule_i        ),
-        .cfg_connectivity_map_i ( cfg_connectivity_map_i  )
+    axi_node_intf_wrap #(
+        .NB_MASTER      ( NB_MASTER      ),
+        .NB_SLAVE       ( NB_SLAVE       ),
+        .AXI_ADDR_WIDTH ( AXI_ADDR_WIDTH ),
+        .AXI_DATA_WIDTH ( AXI_DATA_WIDTH ),
+        .AXI_ID_WIDTH   ( AXI_ID_WIDTH   ),
+        .AXI_USER_WIDTH ( AXI_USER_WIDTH )
+    ) i_axi_node_intf_wrap (
+        .clk,
+        .rst_n,
+        .test_en_i,
+        .slave  ( axi_slave  ),
+        .master ( axi_master ),
+        .start_addr_i,
+        .end_addr_i
     );
 
+    for (genvar i = 0; i < NB_MASTER; i++) begin : axi_slice_master_port
+        axi_multicut #(
+            .ADDR_WIDTH ( AXI_ADDR_WIDTH     ),
+            .DATA_WIDTH ( AXI_DATA_WIDTH     ),
+            .USER_WIDTH ( AXI_USER_WIDTH     ),
+            .ID_WIDTH   ( AXI_ID_OUT         ),
+            .NUM_CUTS   ( MASTER_SLICE_DEPTH )
+        ) i_axi_slice_wrap_master (
+            .clk_i      ( clk           ),
+            .rst_ni     ( rst_n         ),
+            .in         ( axi_master[i] ), // from the node
+            .out        ( master[i]     )  // to IO ports
+        );
+    end
 
-
-    generate
-
-        for( i=0; i<N_MASTER_PORT; i++ )
-        begin : AXI_SLICE_MASTER_PORT
-            axi_slice_wrap
-            #(
-                .AXI_ADDR_WIDTH ( AXI_ADDRESS_W      ),
-                .AXI_DATA_WIDTH ( AXI_DATA_W         ),
-                .AXI_USER_WIDTH ( AXI_USER_W         ),
-                .AXI_ID_WIDTH   ( AXI_ID_OUT         ),
-                .SLICE_DEPTH    ( MASTER_SLICE_DEPTH )
-            )
-            i_axi_slice_wrap_master
-            (
-                .clk_i          ( clk                ),
-                .rst_ni         ( rst_n              ),
-                .test_en_i      ( test_en_i          ),
-
-                .axi_slave      ( axi_master[i]      ), // from the node
-                .axi_master     ( axi_port_master[i] )  // to IO ports
-            );
-        end
-
-        for( i=0; i<N_SLAVE_PORT; i++ )
-        begin : AXI_SLICE_SLAVE_PORT
-            axi_slice_wrap
-            #(
-                .AXI_ADDR_WIDTH ( AXI_ADDRESS_W     ),
-                .AXI_DATA_WIDTH ( AXI_DATA_W        ),
-                .AXI_USER_WIDTH ( AXI_USER_W        ),
-                .AXI_ID_WIDTH   ( AXI_ID_IN         ),
-                .SLICE_DEPTH    ( SLAVE_SLICE_DEPTH )
-            )
-            i_axi_slice_wrap_slave
-            (
-                .clk_i          ( clk               ),
-                .rst_ni         ( rst_n             ),
-                .test_en_i      ( test_en_i          ),
-
-                .axi_slave      ( axi_port_slave[i] ), // from IO_ports
-                .axi_master     ( axi_slave[i]      )  // to axi_node
-            );
-        end
-
-    endgenerate
-
+    for (genvar i = 0; i < NB_SLAVE; i++) begin : axi_slice_slave_port
+        axi_multicut #(
+            .ADDR_WIDTH ( AXI_ADDR_WIDTH    ),
+            .DATA_WIDTH ( AXI_DATA_WIDTH    ),
+            .USER_WIDTH ( AXI_USER_WIDTH    ),
+            .ID_WIDTH   ( AXI_ID_WIDTH      ),
+            .NUM_CUTS   ( SLAVE_SLICE_DEPTH )
+        ) i_axi_slice_wrap_slave (
+            .clk_i      ( clk           ),
+            .rst_ni     ( rst_n         ),
+            .in         ( slave[i]      ), // from IO_ports
+            .out        ( axi_slave[i]  )  // to axi_node
+        );
+    end
 endmodule
