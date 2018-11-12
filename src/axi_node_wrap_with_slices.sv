@@ -7,36 +7,17 @@
 // this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
-
-// ============================================================================= //
-// Company:        Multitherman Laboratory @ DEIS - University of Bologna        //
-//                    Viale Risorgimento 2 40136                                 //
-//                    Bologna - fax 0512093785 -                                 //
-//                                                                               //
-// Engineer:       Igor Loi - igor.loi@unibo.it                                  //
-//                                                                               //
-//                                                                               //
-// Additional contributions by:                                                  //
-//                                                                               //
-//                                                                               //
-//                                                                               //
-// Create Date:    01/02/2014                                                    //
-// Design Name:    AXI 4 INTERCONNECT                                            //
-// Module Name:    axi_node_wrap                                                 //
-// Project Name:   PULP                                                          //
-// Language:       SystemVerilog                                                 //
-//                                                                               //
-// Description:    Axi Node wrapper with system verilog interfaces as IO ports   //
-//                                                                               //
-// Revision:                                                                     //
-// Revision v0.1 - 01/02/2014 : File Created                                     //
-//                                                                               //
-//                                                                               //
-//                                                                               //
-//                                                                               //
-//                                                                               //
-//                                                                               //
-// ============================================================================= //
+//
+// Engineer:       Igor Loi - igor.loi@unibo.it
+// Additional contributions by: Florian Zaruba - zarubaf@iis.ee.thz.ch
+// Create Date:    01/02/2014
+// Module Name:    axi_node_wrap_with_slices
+// Project Name:   PULP
+// Language:       SystemVerilog
+//
+// Description: Slice the interface ports to be AXI compliant
+//
+// Revision: Under version-control
 
 module axi_node_wrap_with_slices #(
     parameter NB_MASTER          = 4,
@@ -45,8 +26,8 @@ module axi_node_wrap_with_slices #(
     parameter AXI_DATA_WIDTH     = 32,
     parameter AXI_ID_WIDTH       = 10,
     parameter AXI_USER_WIDTH     = 0,
-    parameter MASTER_SLICE_DEPTH = 0,
-    parameter SLAVE_SLICE_DEPTH  = 0
+    parameter MASTER_SLICE_DEPTH = 1,
+    parameter SLAVE_SLICE_DEPTH  = 1
 )(
     input logic      clk,
     input logic      rst_n,
@@ -64,15 +45,14 @@ module axi_node_wrap_with_slices #(
       .AXI_DATA_WIDTH ( AXI_DATA_WIDTH  ),
       .AXI_ID_WIDTH   ( AXI_ID_WIDTH    ),
       .AXI_USER_WIDTH ( AXI_USER_WIDTH  )
-    ) axi_slave [NB_SLAVE]();
+    ) axi_slave [NB_SLAVE-1:0]();
 
     AXI_BUS #(
        .AXI_ADDR_WIDTH ( AXI_ADDR_WIDTH ),
        .AXI_DATA_WIDTH ( AXI_DATA_WIDTH ),
        .AXI_ID_WIDTH   ( AXI_ID_OUT     ),
        .AXI_USER_WIDTH ( AXI_USER_WIDTH )
-    ) axi_master [NB_MASTER]();
-
+    ) axi_master [NB_MASTER-1:0]();
 
     axi_node_intf_wrap #(
         .NB_MASTER      ( NB_MASTER      ),
