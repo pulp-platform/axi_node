@@ -62,13 +62,13 @@ module axi_node_wrap_with_slices #(
         .AXI_ID_WIDTH   ( AXI_ID_WIDTH   ),
         .AXI_USER_WIDTH ( AXI_USER_WIDTH )
     ) i_axi_node_intf_wrap (
-        .clk,
-        .rst_n,
-        .test_en_i,
-        .slave  ( axi_slave  ),
-        .master ( axi_master ),
-        .start_addr_i,
-        .end_addr_i
+        .clk            ( clk           ),
+        .rst_n          ( rst_n         ),
+        .test_en_i      ( test_en_i     ),
+        .slave          ( axi_slave     ),
+        .master         ( axi_master    ),
+        .start_addr_i   ( start_addr_i  ),
+        .end_addr_i     ( end_addr_i    )
     );
 
     for (genvar i = 0; i < NB_MASTER; i++) begin : axi_slice_master_port
