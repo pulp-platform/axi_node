@@ -11,6 +11,7 @@
 module axi_node_intf_wrap #(
     parameter NB_MASTER      = 4,
     parameter NB_SLAVE       = 4,
+    parameter NB_REGION      = 1,
     parameter AXI_ADDR_WIDTH = 32,
     parameter AXI_DATA_WIDTH = 32,
     parameter AXI_ID_WIDTH   = 10,
@@ -26,12 +27,12 @@ module axi_node_intf_wrap #(
     AXI_BUS.Master master[NB_MASTER-1:0],
 
     // Memory map
-    input  logic [NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0]  start_addr_i,
-    input  logic [NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0]  end_addr_i
+    input  logic [NB_REGION-1:0][NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0]  start_addr_i,
+    input  logic [NB_REGION-1:0][NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0]  end_addr_i,
+    input  logic [NB_REGION-1:0][NB_MASTER-1:0]                      valid_rule_i
   );
 
   localparam AXI_STRB_WIDTH = AXI_DATA_WIDTH/8;
-  localparam NB_REGION      = 1;
 
   // AXI ID WIDTHs for master and slave IPS
   localparam AXI_ID_WIDTH_TARG =   AXI_ID_WIDTH;
@@ -138,12 +139,6 @@ module axi_node_intf_wrap #(
   logic [NB_SLAVE-1:0]                        s_slave_r_valid;
   logic [NB_SLAVE-1:0]                        s_slave_r_ready;
 
-  // Signals Used to configure the AXI node
-  logic [NB_REGION-1:0][NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0] s_start_addr;
-  logic [NB_REGION-1:0][NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0] s_end_addr;
-  logic [NB_REGION-1:0][NB_MASTER-1:0]                     s_valid_rule;
-
-
   generate
     genvar i;
     for(i = 0; i < NB_MASTER; i++)
@@ -196,9 +191,6 @@ module axi_node_intf_wrap #(
       assign s_master_r_user[i]   = master[i].r_user;
       assign s_master_r_valid[i]  = master[i].r_valid;
       assign                        master[i].r_ready = s_master_r_ready[i];
-
-      assign s_start_addr[0][i] = start_addr_i[i];
-      assign s_end_addr[0][i]   = end_addr_i[i];
     end
   endgenerate
 
@@ -371,13 +363,10 @@ module axi_node_intf_wrap #(
     .master_rvalid_i        ( s_master_r_valid   ),
     .master_rready_o        ( s_master_r_ready   ),
 
-    .cfg_START_ADDR_i       ( s_start_addr       ),
-    .cfg_END_ADDR_i         ( s_end_addr         ),
-    .cfg_valid_rule_i       ( s_valid_rule       ),
+    .cfg_START_ADDR_i       ( start_addr_i       ),
+    .cfg_END_ADDR_i         ( end_addr_i         ),
+    .cfg_valid_rule_i       ( valid_rule_i       ),
     .cfg_connectivity_map_i ( {NB_MASTER*NB_SLAVE{1'b1}} ) // required instead of '1 for Vivado
   );
-
-
-  assign s_valid_rule       = '1;
 
 endmodule

@@ -22,6 +22,7 @@
 module axi_node_wrap_with_slices #(
     parameter NB_MASTER          = 4,
     parameter NB_SLAVE           = 4,
+    parameter NB_REGION          = 1,
     parameter AXI_ADDR_WIDTH     = 32,
     parameter AXI_DATA_WIDTH     = 32,
     parameter AXI_ID_WIDTH       = 10,
@@ -35,8 +36,9 @@ module axi_node_wrap_with_slices #(
     AXI_BUS.Slave    slave  [NB_SLAVE-1:0],
     AXI_BUS.Master   master [NB_MASTER-1:0],
     // Memory map
-    input  logic [NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0] start_addr_i,
-    input  logic [NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0] end_addr_i
+    input  logic [NB_REGION-1:0][NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0] start_addr_i,
+    input  logic [NB_REGION-1:0][NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0] end_addr_i,
+    input  logic [NB_REGION-1:0][NB_MASTER-1:0]                     valid_rule_i
 );
     localparam AXI_ID_OUT = AXI_ID_WIDTH + $clog2(NB_SLAVE);
 
@@ -57,6 +59,7 @@ module axi_node_wrap_with_slices #(
     axi_node_intf_wrap #(
         .NB_MASTER      ( NB_MASTER      ),
         .NB_SLAVE       ( NB_SLAVE       ),
+        .NB_REGION      ( NB_REGION      ),
         .AXI_ADDR_WIDTH ( AXI_ADDR_WIDTH ),
         .AXI_DATA_WIDTH ( AXI_DATA_WIDTH ),
         .AXI_ID_WIDTH   ( AXI_ID_WIDTH   ),
@@ -68,7 +71,8 @@ module axi_node_wrap_with_slices #(
         .slave          ( axi_slave     ),
         .master         ( axi_master    ),
         .start_addr_i   ( start_addr_i  ),
-        .end_addr_i     ( end_addr_i    )
+        .end_addr_i     ( end_addr_i    ),
+        .valid_rule_i   ( valid_rule_i  )
     );
 
     for (genvar i = 0; i < NB_MASTER; i++) begin : axi_slice_master_port
