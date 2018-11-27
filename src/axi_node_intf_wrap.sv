@@ -142,7 +142,6 @@ module axi_node_intf_wrap #(
   logic [NB_REGION-1:0][NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0] s_start_addr;
   logic [NB_REGION-1:0][NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0] s_end_addr;
   logic [NB_REGION-1:0][NB_MASTER-1:0]                     s_valid_rule;
-  logic [NB_SLAVE-1:0][NB_MASTER-1:0]                      s_connectivity_map;
 
 
   generate
@@ -375,12 +374,10 @@ module axi_node_intf_wrap #(
     .cfg_START_ADDR_i       ( s_start_addr       ),
     .cfg_END_ADDR_i         ( s_end_addr         ),
     .cfg_valid_rule_i       ( s_valid_rule       ),
-    .cfg_connectivity_map_i ( s_connectivity_map )
+    .cfg_connectivity_map_i ( {NB_MASTER*NB_SLAVE{1'b1}} ) // required instead of '1 for Vivado
   );
 
 
   assign s_valid_rule       = '1;
-
-  assign s_connectivity_map = '1;
 
 endmodule
