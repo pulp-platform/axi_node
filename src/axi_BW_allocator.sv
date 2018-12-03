@@ -94,18 +94,18 @@ enum logic [1:0]                                                {OPERATIVE, ERRO
 
 
 
-//OUtput of the ARB tree, to be multiplexed in the FSM
-logic [AXI_ID_IN-1:0]                                                   bid_ARB_TREE;
-logic [ 1:0]                                                            bresp_ARB_TREE;
-logic [AXI_USER_W-1:0]                                                  buser_ARB_TREE;   //last transfer in burst
-logic                                                                   bvalid_ARB_TREE;  //slave data valid
-logic                                                                   bready_ARB_TREE;   //master ready to accept
+// Output of the arbiter, to be multiplexed in the FSM
+logic [AXI_ID_IN-1:0]                                                   arb_bid;
+logic [1:0]                                                             arb_bresp;
+logic [AXI_USER_W-1:0]                                                  arb_buser;
+logic                                                                   arb_bvalid;
+logic                                                                   arb_bready;
 
 
 
 
 
-assign        { buser_ARB_TREE,  bresp_ARB_TREE}  =  AUX_VECTOR_OUT;
+assign {arb_buser, arb_bresp} = AUX_VECTOR_OUT;
 
 
 // -------------------------------------------------------------------------   //
@@ -188,11 +188,11 @@ end
 always_comb
 begin
   //default Values
-  bid_o           = bid_ARB_TREE;
-  bresp_o         = bresp_ARB_TREE;
-  buser_o         = buser_ARB_TREE;
-  bvalid_o        = bvalid_ARB_TREE;
-  bready_ARB_TREE = bready_i;
+  bid_o       = arb_bid;
+  bresp_o     = arb_bresp;
+  buser_o     = arb_buser;
+  bvalid_o    = arb_bvalid;
+  arb_bready  = bready_i;
 
   error_gnt_o      = 1'b0;
 
@@ -201,8 +201,7 @@ begin
 
     OPERATIVE :
     begin
-        bready_ARB_TREE  = bready_i;
-        error_gnt_o      = 1'b0;
+        error_gnt_o = 1'b0;
 
         if((error_req_i == 1'b1) && (outstanding_trans_o == 1'b0))
         begin
@@ -217,7 +216,7 @@ begin
 
     ERROR_SINGLE :
     begin
-        bready_ARB_TREE = 1'b0;
+        arb_bready  = 1'b0;
         error_gnt_o = 1'b1;
         bresp_o     = axi_pkg::RESP_DECERR;
         bvalid_o    = 1'b1;
@@ -262,45 +261,33 @@ generate
 
 if(N_INIT_PORT == 1)
 begin : DIRECT_BINDING
-    //assign bvalid_o        = bvalid_i;
-    assign bvalid_ARB_TREE   = bvalid_i; //FIXME
-    assign AUX_VECTOR_OUT    = AUX_VECTOR_IN;
-    assign bid_ARB_TREE      = bid_int;
-    //assign bid_o           = bid_int;
-    assign bready_o        = bready_i;
+    assign arb_bvalid     = bvalid_i;
+    assign AUX_VECTOR_OUT = AUX_VECTOR_IN;
+    assign arb_bid        = bid_int;
+    assign bready_o       = bready_i;
 end
 else
-begin : ARB_TREE
+begin : ARBITER
 
+  axi_node_arbiter #(
+    .AUX_WIDTH  (AUX_WIDTH),
+    .ID_WIDTH   (AXI_ID_IN),
+    .N_MASTER   (N_INIT_PORT)
+  ) i_arbiter (
+    .clk_i        (clk),
+    .rst_ni       (rst_n),
 
+    .inp_id_i     (bid_int),
+    .inp_aux_i    (AUX_VECTOR_IN),
+    .inp_valid_i  (bvalid_i),
+    .inp_ready_o  (bready_o),
 
+    .oup_id_o     (arb_bid),
+    .oup_aux_o    (AUX_VECTOR_OUT),
+    .oup_valid_o  (arb_bvalid),
+    .oup_ready_i  (arb_bready)
+  );
 
-    axi_ArbitrationTree
-    #(
-      .AUX_WIDTH  (AUX_WIDTH),
-      .ID_WIDTH   (AXI_ID_IN),
-      .N_MASTER   (N_INIT_PORT)
-    )
-    BW_ARB_TREE
-    (
-      .clk           (  clk            ),
-      .rst_n         (  rst_n          ),
-
-      // ---------------- RESP_SIDE -------
-      .data_req_i    (  bvalid_i       ),
-      .data_AUX_i    (  AUX_VECTOR_IN  ),
-      .data_ID_i     (  bid_int        ),
-      .data_gnt_o    (  bready_o       ),
-
-      // Outputs
-      .data_req_o    (  bvalid_ARB_TREE       ),
-      .data_AUX_o    (  AUX_VECTOR_OUT ),
-      .data_ID_o     (  bid_ARB_TREE          ),
-      .data_gnt_i    (  bready_ARB_TREE       ),
-
-      .lock          (1'b0),
-      .SEL_EXCLUSIVE ({$clog2(N_INIT_PORT){1'b0}})
-    );
 end
 
 endgenerate

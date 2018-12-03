@@ -131,33 +131,23 @@ generate
 
 endgenerate
 
+  axi_node_arbiter #(
+    .AUX_WIDTH  (AUX_WIDTH),
+    .ID_WIDTH   (LOG_N_TARG+N_TARG_PORT),
+    .N_MASTER   (N_TARG_PORT)
+  ) i_arbiter (
+    .clk_i        (clk),
+    .rst_ni       (rst_n),
 
+    .inp_id_i     (ID_in),
+    .inp_aux_i    (AUX_VECTOR_IN),
+    .inp_valid_i  (awvalid_i),
+    .inp_ready_o  (awready_int),
 
-      axi_ArbitrationTree
-      #(
-            .AUX_WIDTH     ( AUX_WIDTH              ),
-            .ID_WIDTH      ( LOG_N_TARG+N_TARG_PORT ),
-            .N_MASTER      ( N_TARG_PORT            )
-      )
-      AW_ARB_TREE
-      (
-            .clk           (  clk            ),
-            .rst_n         (  rst_n          ),
-
-            // ---------------- REQ_SIDE --------------------------
-            .data_req_i    (  awvalid_i      ),
-            .data_AUX_i    (  AUX_VECTOR_IN  ),
-            .data_ID_i     (  ID_in          ),
-            .data_gnt_o    (  awready_int    ),
-
-            // Outputs
-            .data_req_o    (  awvalid_int    ),
-            .data_AUX_o    (  AUX_VECTOR_OUT ),
-            .data_ID_o     (  ID_o           ), // --> To be merged with OH to Bin ID
-            .data_gnt_i    (  awready_i      ),
-
-            .lock          (  1'b0           ),
-            .SEL_EXCLUSIVE (  {$clog2(N_TARG_PORT){1'b0}} )
-      );
+    .oup_id_o     (ID_o),
+    .oup_aux_o    (AUX_VECTOR_OUT),
+    .oup_valid_o  (awvalid_int),
+    .oup_ready_i  (awready_i)
+  );
 
 endmodule
