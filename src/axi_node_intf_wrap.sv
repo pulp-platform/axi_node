@@ -49,6 +49,7 @@ module axi_node_intf_wrap #(
   logic [NB_MASTER-1:0][3:0]                   s_master_aw_cache;
   logic [NB_MASTER-1:0][2:0]                   s_master_aw_prot;
   logic [NB_MASTER-1:0][3:0]                   s_master_aw_region;
+  logic [NB_MASTER-1:0][5:0]                   s_master_aw_atop;
   logic [NB_MASTER-1:0][AXI_USER_WIDTH-1:0]    s_master_aw_user;
   logic [NB_MASTER-1:0][3:0]                   s_master_aw_qos;
   logic [NB_MASTER-1:0]                        s_master_aw_valid;
@@ -99,6 +100,7 @@ module axi_node_intf_wrap #(
   logic [NB_SLAVE-1:0][3:0]                   s_slave_aw_cache;
   logic [NB_SLAVE-1:0][2:0]                   s_slave_aw_prot;
   logic [NB_SLAVE-1:0][3:0]                   s_slave_aw_region;
+  logic [NB_SLAVE-1:0][5:0]                   s_slave_aw_atop;
   logic [NB_SLAVE-1:0][AXI_USER_WIDTH-1:0]    s_slave_aw_user;
   logic [NB_SLAVE-1:0][3:0]                   s_slave_aw_qos;
   logic [NB_SLAVE-1:0]                        s_slave_aw_valid;
@@ -152,6 +154,7 @@ module axi_node_intf_wrap #(
       assign                        master[i].aw_cache                     = s_master_aw_cache[i];
       assign                        master[i].aw_prot                      = s_master_aw_prot[i];
       assign                        master[i].aw_region                    = s_master_aw_region[i];
+      assign                        master[i].aw_atop                      = s_master_aw_atop[i];
       assign                        master[i].aw_user                      = s_master_aw_user[i];
       assign                        master[i].aw_qos                       = s_master_aw_qos[i];
       assign                        master[i].aw_valid                     = s_master_aw_valid[i];
@@ -207,6 +210,7 @@ module axi_node_intf_wrap #(
       assign s_slave_aw_cache[j]  = slave[j].aw_cache;
       assign s_slave_aw_prot[j]   = slave[j].aw_prot;
       assign s_slave_aw_region[j] = slave[j].aw_region;
+      assign s_slave_aw_atop[j]   = slave[j].aw_atop;
       assign s_slave_aw_user[j]   = slave[j].aw_user;
       assign s_slave_aw_qos[j]    = slave[j].aw_qos;
       assign s_slave_aw_valid[j]  = slave[j].aw_valid;
@@ -274,6 +278,7 @@ module axi_node_intf_wrap #(
     .slave_awcache_i        ( s_slave_aw_cache   ),
     .slave_awprot_i         ( s_slave_aw_prot    ),
     .slave_awregion_i       ( s_slave_aw_region  ),
+    .slave_awatop_i         ( s_slave_aw_atop    ),
     .slave_awqos_i          ( s_slave_aw_qos     ),
     .slave_awuser_i         ( s_slave_aw_user    ),
     .slave_awvalid_i        ( s_slave_aw_valid   ),
@@ -323,6 +328,7 @@ module axi_node_intf_wrap #(
     .master_awcache_o       ( s_master_aw_cache  ),
     .master_awprot_o        ( s_master_aw_prot   ),
     .master_awregion_o      ( s_master_aw_region ),
+    .master_awatop_o        ( s_master_aw_atop   ),
     .master_awqos_o         ( s_master_aw_qos    ),
     .master_awuser_o        ( s_master_aw_user   ),
     .master_awvalid_o       ( s_master_aw_valid  ),

@@ -76,6 +76,7 @@ module axi_node #(
    input  logic [N_SLAVE_PORT-1:0][ 3:0]                                 slave_awcache_i,        //
    input  logic [N_SLAVE_PORT-1:0][ 2:0]                                 slave_awprot_i, //
    input  logic [N_SLAVE_PORT-1:0][ 3:0]                                 slave_awregion_i,       //
+   input  logic [N_SLAVE_PORT-1:0][ 5:0]                                 slave_awatop_i,
    input  logic [N_SLAVE_PORT-1:0][ AXI_USER_W-1:0]                      slave_awuser_i, //
    input  logic [N_SLAVE_PORT-1:0][ 3:0]                                 slave_awqos_i,  //
    input  logic [N_SLAVE_PORT-1:0]                                       slave_awvalid_i,        //master addr valid
@@ -128,6 +129,7 @@ module axi_node #(
    output logic [N_MASTER_PORT-1:0][ 3:0]                                master_awcache_o,       //
    output logic [N_MASTER_PORT-1:0][ 2:0]                                master_awprot_o,        //
    output logic [N_MASTER_PORT-1:0][ 3:0]                                master_awregion_o,      //
+   output logic [N_MASTER_PORT-1:0][ 5:0]                                master_awatop_o,
    output logic [N_MASTER_PORT-1:0][ AXI_USER_W-1:0]                     master_awuser_o,        //
    output logic [N_MASTER_PORT-1:0][ 3:0]                                master_awqos_o, //
    output logic [N_MASTER_PORT-1:0]                                      master_awvalid_o,       //master addr valid
@@ -310,6 +312,7 @@ begin : _REQ_BLOCK_GEN
      .awcache_i   (  slave_awcache_i        ), //
      .awprot_i    (  slave_awprot_i         ), //
      .awregion_i  (  slave_awregion_i       ), //
+     .awatop_i    (  slave_awatop_i         ), //
      .awuser_i    (  slave_awuser_i         ), //
      .awqos_i     (  slave_awqos_i          ), //
      .awvalid_i   (  awvalid_int_reverse[i] ), //master addr valid
@@ -362,6 +365,7 @@ begin : _REQ_BLOCK_GEN
      .awcache_o (  master_awcache_o[i]      ), //
      .awprot_o  (  master_awprot_o[i]       ), //
      .awregion_o(  master_awregion_o[i]     ), //
+     .awatop_o  (  master_awatop_o[i]       ), //
      .awuser_o  (  master_awuser_o[i]       ), //
      .awqos_o   (  master_awqos_o[i]        ), //
      .awvalid_o (  master_awvalid_o[i]      ), //master addr valid

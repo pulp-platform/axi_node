@@ -68,6 +68,7 @@ module axi_request_block
   input  logic [N_TARG_PORT-1:0][ 3:0]                                  awcache_i,      //
   input  logic [N_TARG_PORT-1:0][ 2:0]                                  awprot_i,       //
   input  logic [N_TARG_PORT-1:0][ 3:0]                                  awregion_i,     //
+  input  logic [N_TARG_PORT-1:0][ 5:0]                                  awatop_i,       //
   input  logic [N_TARG_PORT-1:0][ AXI_USER_W-1:0]                       awuser_i,       //
   input  logic [N_TARG_PORT-1:0][ 3:0]                                  awqos_i,        //
   input  logic [N_TARG_PORT-1:0]                                        awvalid_i,      //master addr valid
@@ -134,6 +135,7 @@ module axi_request_block
   output  logic [ 3:0]                                                  awcache_o,      //
   output  logic [ 2:0]                                                  awprot_o,       //
   output  logic [ 3:0]                                                  awregion_o,     //
+  output  logic [ 5:0]                                                  awatop_o,       //
   output  logic [ AXI_USER_W-1:0]                                       awuser_o,       //
   output  logic [ 3:0]                                                  awqos_o,        //
   output  logic                                                         awvalid_o,      //master addr valid
@@ -248,6 +250,7 @@ AW_ALLOCATOR
   .awcache_i  (  awcache_i  ),    //
   .awprot_i   (  awprot_i   ),    //
   .awregion_i (  awregion_i ),    //
+  .awatop_i   (  awatop_i   ),    //
   .awuser_i   (  awuser_i   ),    //
   .awqos_i    (  awqos_i    ),    //
 
@@ -266,6 +269,7 @@ AW_ALLOCATOR
   .awprot_o   (  awprot_o  ),     //
 
   .awregion_o (  awregion_o ),    //
+  .awatop_o   (  awatop_o   ),    //
   .awuser_o   (  awuser_o   ),    //
   .awqos_o    (  awqos_o    ),    //
 

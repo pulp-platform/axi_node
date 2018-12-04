@@ -29,6 +29,7 @@ module axi_AW_allocator #(
   input  logic [N_TARG_PORT-1:0][3:0]                 awcache_i,
   input  logic [N_TARG_PORT-1:0][2:0]                 awprot_i,
   input  logic [N_TARG_PORT-1:0][3:0]                 awregion_i,
+  input  logic [N_TARG_PORT-1:0][5:0]                 awatop_i,
   input  logic [N_TARG_PORT-1:0][AXI_USER_W-1:0]      awuser_i,
   input  logic [N_TARG_PORT-1:0][3:0]                 awqos_i,
 
@@ -45,6 +46,7 @@ module axi_AW_allocator #(
   output logic [3:0]                                  awcache_o,
   output logic [2:0]                                  awprot_o,
   output logic [3:0]                                  awregion_o,
+  output logic [5:0]                                  awatop_o,
   output logic [AXI_USER_W-1:0]                       awuser_o,
   output logic [3:0]                                  awqos_o,
 
@@ -67,6 +69,7 @@ module axi_AW_allocator #(
     logic [3:0]               cache;
     logic [2:0]               prot;
     logic [3:0]               region;
+    logic [5:0]               atop;
     logic [AXI_USER_W-1:0]    user;
     logic [3:0]               qos;
   } aw_t;
@@ -87,6 +90,7 @@ module axi_AW_allocator #(
   assign awcache_o  = aw_oup.cache;
   assign awprot_o   = aw_oup.prot;
   assign awregion_o = aw_oup.region;
+  assign awatop_o   = aw_oup.atop;
   assign awuser_o   = aw_oup.user;
   assign awqos_o    = aw_oup.qos;
 
@@ -100,6 +104,7 @@ module axi_AW_allocator #(
     assign aw_inp[i].cache  = awcache_i[i];
     assign aw_inp[i].prot   = awprot_i[i];
     assign aw_inp[i].region = awregion_i[i];
+    assign aw_inp[i].atop   = awatop_i[i];
     assign aw_inp[i].user   = awuser_i[i];
     assign aw_inp[i].qos    = awqos_i[i];
   end
