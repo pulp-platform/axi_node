@@ -4,7 +4,7 @@ package:
 
 dependencies:
   common_cells: { git: "https://github.com/pulp-platform/common_cells.git", version: 1.10.0 }
-  axi: { git: "https://github.com/pulp-platform/axi.git", rev: 3330f59b8668d8913e9835ba6b58d09536d2f209 }
+  axi: { git: "https://github.com/pulp-platform/axi.git", version: 0.6.0 }
 
 sources:
   - src/apb_regs_top.sv
