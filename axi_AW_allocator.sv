@@ -115,7 +115,22 @@ assign        awid_o[AXI_ID_OUT-1:AXI_ID_IN] = ID_o[LOG_N_TARG+N_TARG_PORT-1:N_T
 assign        awready_o = {N_TARG_PORT{grant_FIFO_ID_i}} & awready_int;
 assign        awvalid_o = awvalid_int & grant_FIFO_ID_i;
 
-assign        push_ID_o = awvalid_o & awready_i & grant_FIFO_ID_i;
+//assign        push_ID_o = awvalid_o & awready_i & grant_FIFO_ID_i;
+// we push the first cycle that awvalid is asserted
+logic r_busy; 
+always @(posedge clk) begin
+    if(rst_n == 1'b0)
+        r_busy <= 0; //reset condition
+    else begin
+        if (awready_o == 1'b0)
+            r_busy <= awvalid_o; // acknowledge delayed; only issue push once
+        else
+            r_busy <= 0; // acknowledge issued; keep pushing until aw_ready_o goes low
+    end
+end
+assign push_ID_o = (awvalid_o & (awvalid_o ^ r_busy)) & grant_FIFO_ID_i;
+// end (added)
+
 
 generate
   for(i=0;i<N_TARG_PORT;i++)

@@ -100,7 +100,24 @@ module axi_address_decoder_AW
 
 
   assign DEST_o      = match_region[N_INIT_PORT-1:0];
-  assign push_DEST_o = |(awvalid_i & awready_o) & ~error_detected;
+  
+  // causes dependency such that wvalid is not passed through if awready is not asserted by the slave
+  //assign push_DEST_o = |(awvalid_i & awready_o) & ~error_detected;
+  
+  // we push the first cycle that awvalid is asserted
+  logic r_busy; 
+  always @(posedge clk) begin
+    if(rst_n == 1'b0)
+        r_busy <= 0; //reset condition
+    else begin
+        if (awready_o == 1'b0)
+            r_busy <= awvalid_i; // acknowledge delayed; only issue push once
+        else
+            r_busy <= 0; // acknowledge issued; keep pushing until aw_ready_o goes low
+    end
+  end
+  assign push_DEST_o = (awvalid_i & (awvalid_i ^ r_busy)) & ~error_detected;
+  // end (added)
 
   enum logic [1:0]      { OPERATIVE, COMPLETE_PENDING, ACCEPT_WDATA , COMPLETE_ERROR_RESP } CS, NS;
 
@@ -188,7 +205,9 @@ module axi_address_decoder_AW
     end
   end
 
-  assign local_increm =  |(awvalid_o & awready_i);
+  //assign local_increm =  |(awvalid_o & awready_i);
+  assign local_increm = (awvalid_i & (awvalid_i ^ r_busy));
+
 
   always_comb
   begin
