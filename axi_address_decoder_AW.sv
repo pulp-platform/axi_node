@@ -101,23 +101,25 @@ module axi_address_decoder_AW
 
   assign DEST_o      = match_region[N_INIT_PORT-1:0];
   
-  // causes dependency such that wvalid is not passed through if awready is not asserted by the slave
-  //assign push_DEST_o = |(awvalid_i & awready_o) & ~error_detected;
   
-  // we push the first cycle that awvalid is asserted
+  // Original code contains false dependency
+  //   - AXI4 standard: 'the master must not wait for the slave to assert AWREADY or WREADY before asserting AWVALID or WVALID'
+  //   - original code: assign push_DEST_o = |(awvalid_i & awready_o) & ~error_detected;
+
+  // Therefore, push awvalid the first cycle that awvalid is asserted
+  //   case 1: awvalid is asserted before awready is asserted
+  //     - awvalid is pushed once. If awready goes high, r_busy is cleared for the next cycle.
+  //   case 2: awvalid is asserted while awready is asserted (e.g. default accept)
+  //     - awvalid is pushed, and r_busy is cleared for the next cycle.
   logic r_busy; 
   always @(posedge clk) begin
-    if(rst_n == 1'b0)
-        r_busy <= 0; //reset condition
-    else begin
-        if (awready_o == 1'b0)
-            r_busy <= awvalid_i; // acknowledge delayed; only issue push once
-        else
-            r_busy <= 0; // acknowledge issued; keep pushing until aw_ready_o goes low
-    end
+      if(rst_n == 1'b0)
+          r_busy <= 0;
+      else
+          r_busy <= awvalid_i & ~awready_o;
   end
   assign push_DEST_o = (awvalid_i & (awvalid_i ^ r_busy)) & ~error_detected;
-  // end (added)
+    
 
   enum logic [1:0]      { OPERATIVE, COMPLETE_PENDING, ACCEPT_WDATA , COMPLETE_ERROR_RESP } CS, NS;
 
@@ -205,7 +207,6 @@ module axi_address_decoder_AW
     end
   end
 
-  //assign local_increm =  |(awvalid_o & awready_i);
   assign local_increm = (awvalid_i & (awvalid_i ^ r_busy));
 
 
