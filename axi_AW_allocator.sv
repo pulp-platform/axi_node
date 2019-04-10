@@ -130,7 +130,7 @@ always @(posedge clk) begin
     if(rst_n == 1'b0)
         r_busy <= 0;
     else
-        r_busy <= awvalid_o & ~awready_o;
+        r_busy <= awvalid_o & ~|awready_o;
 end
 assign push_ID_o = (awvalid_o & (awvalid_o ^ r_busy)) & grant_FIFO_ID_i;
 
