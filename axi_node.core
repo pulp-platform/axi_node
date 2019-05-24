@@ -34,6 +34,53 @@ filesets:
       - src/axi_node_wrap_with_slices.sv
     file_type : systemVerilogSource
 
+generators:
+  axi_intercon_gen:
+    interpreter: python
+    command: axi_intercon_gen.py
+    description: Generate a wrapper around PULP AXI Node interconnect
+    usage: |
+      axi_intercon_gen wraps AXI Node by expanding arrays of signals into
+      human-readable buses. Memory map can be set with generator parameters.
+      It will also generate a verilog include file containing the wire
+      definitions and module instantiation which can be `included in the
+      module where the interconnect wrapper is intended to be used.
+
+      Parameters:
+        masters: A dictionary where each key names a master interface connecting
+                 to the interconnect and the associated value contains
+                 configuration for that interface. Currently, there exists no
+                 master configuration keys and the values can be set to null
+        slaves: A dictionary  where each key names a slave interface connecting
+                 to the interconnect and the associated value contains
+                 configuration for that interface. The following configuration
+                 keys are defined
+
+                   offset (int): Base address for the slave
+                   size   (int): Size of the allocated memory map for the slave
+
+      Example usage:
+        The following config will generate an interconnect wrapper to which two
+        AXI4 master interfaces (dma and ibus) are connected, and connects
+        downstream to three AXI4 slaves (rom, gpio, ram)
+
+        soc_intercon:
+          generator: axi_intercon_gen
+          parameters:
+            masters:
+              dma:
+              ibus:
+            slaves:
+              ram:
+                offset : 0
+                size: 0x10000000
+              gpio:
+                offset: 0x91000000
+                size: 0x1000
+              rom:
+                offset : 0xffff0000
+                size : 32768
+
 targets:
   default:
     filesets : [core, interface]
