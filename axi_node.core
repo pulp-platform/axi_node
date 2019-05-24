@@ -1,0 +1,46 @@
+CAPI=2:
+
+name : pulp-platform.org::axi_node:1.1.1
+
+filesets:
+  core:
+    files:
+      - src/apb_regs_top.sv
+      - src/axi_address_decoder_AR.sv
+      - src/axi_address_decoder_AW.sv
+      - src/axi_address_decoder_BR.sv
+      - src/axi_address_decoder_BW.sv
+      - src/axi_address_decoder_DW.sv
+      - src/axi_AR_allocator.sv
+      - src/axi_AW_allocator.sv
+      - src/axi_BR_allocator.sv
+      - src/axi_BW_allocator.sv
+      - src/axi_DW_allocator.sv
+      - src/axi_multiplexer.sv
+      - src/axi_node_arbiter.sv
+      - src/axi_node.sv
+      - src/axi_regs_top.sv
+      - src/axi_request_block.sv
+      - src/axi_response_block.sv
+    file_type : systemVerilogSource
+    depend :
+      - ">=pulp-platform.org::common_cells:1.7.5"
+      #Required since axi_B(R/W)_allocator.sv uses axi_pkg::RESP_DECERR
+      - ">=pulp-platform.org::axi:0.4.5"
+
+  interface:
+    files:
+      - src/axi_node_intf_wrap.sv
+      - src/axi_node_wrap_with_slices.sv
+    file_type : systemVerilogSource
+
+targets:
+  default:
+    filesets : [core, interface]
+
+  lint:
+    default_tool : verilator
+    filesets : [core]
+    tools:
+      verilator: {mode : lint-only}
+    toplevel: axi_node
