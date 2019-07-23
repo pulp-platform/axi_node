@@ -65,13 +65,19 @@ def axi_signals(w, id_width):
     ]
     return signals
 
-def module_ports(w, name, id_width, is_input):
+def module_ports(w, intf, id_width, is_input):
     ports = []
     for s in axi_signals(w, id_width):
         if s[0].endswith('user') and not w.user:
             continue
+        if s[0].startswith('aw') and intf.read_only:
+            continue
+        if s[0].startswith('w') and intf.read_only:
+            continue
+        if s[0].startswith('b') and intf.read_only:
+            continue
         prefix = 'o' if is_input == s[1] else 'i'
-        ports.append(ModulePort("{}_{}_{}".format(prefix, name, s[0]),
+        ports.append(ModulePort("{}_{}_{}".format(prefix, intf.name, s[0]),
                                 'output' if is_input == s[1] else 'input',
                                 s[2]))
     return ports
@@ -84,6 +90,8 @@ def assigns(w, max_idw, masters, slaves):
             if s[0].endswith('user') and not w.user:
                 continue
             if s[1]:
+                if m.read_only and (s[0].startswith('aw') or s[0].startswith('w') or s[0].startswith('b')):
+                    continue
                 src = "slave_{}[{}]".format(s[0], i)
                 if s[0] in ['bid', 'rid'] and m.idw < max_idw:
                     src = src+'[{}:0]'.format(m.idw-1)
@@ -92,6 +100,12 @@ def assigns(w, max_idw, masters, slaves):
                 src = "i_{}_{}".format(m.name, s[0])
                 if s[0] in ['arid', 'awid'] and m.idw < max_idw:
                     src = "{"+ str(max_idw-m.idw)+"'d0,"+src+"}"
+                if m.read_only and (s[0].startswith('aw') or s[0].startswith('w') or s[0].startswith('b')):
+                    if s[0] in ['awid']:
+                        _w = max_idw
+                    else:
+                        _w = max(1,s[2])
+                    src = "{}'d0".format(_w)
                 raw += "   assign slave_{}[{}] = {};\n".format(s[0], i, src)
         raw += "   assign connectivity_map[{}] = {}'b{};\n".format(i, len(slaves), '1'*len(slaves))
         i += 1
@@ -146,22 +160,26 @@ def instance_ports(w, id_width, masters, slaves):
     ports.append(Port('cfg_connectivity_map_i', "connectivity_map"))
     return ports
 
-def template_ports(w, name, id_width, is_input):
+def template_ports(w, intf, id_width, is_input):
     ports = []
     for s in axi_signals(w, id_width):
         if s[0].endswith('user') and not w.user:
             continue
-        port_name = "{}_{}".format(name, s[0])
+        if intf.read_only and (s[0].startswith('aw') or s[0].startswith('w') or s[0].startswith('b')):
+            continue
+        port_name = "{}_{}".format(intf.name, s[0])
         prefix = 'o' if is_input == s[1] else 'i'
         ports.append(Port("{}_{}".format(prefix, port_name), port_name))
     return ports
 
-def template_wires(w, name, id_width):
+def template_wires(w, intf, id_width):
     wires = []
     for s in axi_signals(w, id_width):
         if s[0].endswith('user') and not w.user:
             continue
-        wires.append(Wire("{}_{}".format(name, s[0]), s[2]))
+        if intf.read_only and (s[0].startswith('aw') or s[0].startswith('w') or s[0].startswith('b')):
+            continue
+        wires.append(Wire("{}_{}".format(intf.name, s[0]), s[2]))
     return wires
 
 class Master:
@@ -169,6 +187,7 @@ class Master:
         self.name = name
         self.slaves = []
         self.idw = 1
+        self.read_only = False
         if d:
             self.load_dict(d)
 
@@ -179,7 +198,10 @@ class Master:
                 continue
             if key == 'id_width':
                 self.idw = value
+            elif key == 'read_only':
+                self.read_only = value
             else:
+                print(key)
                 raise UnknownPropertyError(
                     "Unknown property '%s' in master section '%s'" % (
                     key, self.name))
@@ -191,6 +213,7 @@ class Slave:
         self.offset = 0
         self.size = 0
         self.mask = 0
+        self.read_only = False
         if d:
             self.load_dict(d)
 
@@ -201,6 +224,8 @@ class Slave:
             elif key == 'size':
                 self.size = value
                 self.mask = ~(self.size-1) & 0xffffffff
+            elif key == 'read_only':
+                self.read_only = value
             else:
                 raise UnknownPropertyError(
                     "Unknown property '%s' in slave section '%s'" % (
@@ -288,18 +313,18 @@ class AxiIntercon:
         self.verilog_writer.add(ModulePort('clk'  , 'input'))
         self.verilog_writer.add(ModulePort('rst_n', 'input'))
         for master in self.masters:
-            for port in module_ports(w, master.name, master.idw, True):
+            for port in module_ports(w, master, master.idw, True):
                 self.verilog_writer.add(port)
-            for wire in template_wires(w, master.name, master.idw):
+            for wire in template_wires(w, master, master.idw):
                 self.template_writer.add(wire)
-            _template_ports += template_ports(w, master.name, master.idw, True)
+            _template_ports += template_ports(w, master, master.idw, True)
 
         for slave in self.slaves:
-            for port in module_ports(w, slave.name, max_sidw, False):
+            for port in module_ports(w, slave, max_sidw, False):
                 self.verilog_writer.add(port)
-            for wire in template_wires(w, slave.name, max_sidw):
+            for wire in template_wires(w, slave, max_sidw):
                 self.template_writer.add(wire)
-            _template_ports += template_ports(w, slave.name, max_sidw, False)
+            _template_ports += template_ports(w, slave, max_sidw, False)
 
         raw = ""
 

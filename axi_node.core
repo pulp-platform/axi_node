@@ -1,6 +1,6 @@
 CAPI=2:
 
-name : pulp-platform.org::axi_node:1.1.1-r2
+name : pulp-platform.org::axi_node:1.1.1-r3
 
 filesets:
   core:
