@@ -6,6 +6,10 @@ import yaml
 
 from verilogwriter import Signal, Wire, Instance, ModulePort, Port, VerilogWriter
 
+if sys.version[0] == '2':
+
+    math.log2 = lambda x : math.log(x, 2)
+
 class Widths:
     addr = 0
     user = 0
@@ -302,7 +306,7 @@ class AxiIntercon:
         w.user = 0
 
         max_idw = max([m.idw for m in self.masters])
-        max_sidw = max_idw + math.ceil(math.log2(len(self.masters)))
+        max_sidw = max_idw + int(math.ceil(math.log2(len(self.masters))))
         file = self.output_file
 
         _template_ports = [Port('clk'  , 'clk'),
