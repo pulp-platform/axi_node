@@ -25,16 +25,3 @@ axi_node:
     src/axi_response_block.sv,
     src/axi_RR_Flag_Req.sv,
   ]
-  jg_slint_top_name: [
-    axi_node_intf_wrap
-  ]
-  jg_slint_elab_opt: [    
-  ]
-  jg_slint_postelab_cmds: [
-  ]
-  jg_slint_clocks: [
-    clk,
-  ]
-  jg_slint_resets: [
-    ~rst_n,
-  ]
