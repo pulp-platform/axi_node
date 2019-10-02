@@ -38,6 +38,8 @@
 //                                                                               //
 // ============================================================================= //
 
+import axi_pkg::*;
+
 module axi_node #(
    parameter                   AXI_ADDRESS_W      = 32,
    parameter                   AXI_DATA_W         = 64,

@@ -19,6 +19,8 @@
 //
 // Revision: Under version-control
 
+import axi_pkg::*;
+
 module axi_node_wrap_with_slices #(
     parameter NB_MASTER          = 4,
     parameter NB_SLAVE           = 4,

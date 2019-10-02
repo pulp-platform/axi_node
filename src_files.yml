@@ -1,5 +1,9 @@
 axi_node:
+  vlog_opts: [
+    -L axi_lib
+  ]
   incdirs: [
+    ../axi/src/,
     ./src/,
   ]
   files: [

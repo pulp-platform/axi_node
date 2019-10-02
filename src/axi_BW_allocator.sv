@@ -39,6 +39,8 @@
 //                                                                               //
 // ============================================================================= //
 
+import axi_pkg::*;
+
 module axi_BW_allocator #(
     parameter                   AXI_USER_W     = 6,
     parameter                   N_INIT_PORT    = 1,
