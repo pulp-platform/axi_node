@@ -1,4 +1,8 @@
 axi_node:
+  vlog_opts: [
+    -L common_cells_lib,
+    -L axi_lib,
+  ]
   incdirs: [
     ./src/,
   ]
