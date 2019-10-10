@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.3 - 2019-10-10
+- Update dependencies: `axi` to `v0.7.0` and `common_cells` to `v1.13.1`
+- Specify dependencies for IPApproX
+
 ## 1.1.2 - 2018-11-12
 - Fix AXI slice wrapper
 
