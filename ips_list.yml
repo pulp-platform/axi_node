@@ -21,4 +21,4 @@
 common_cells:
   commit: v1.13.1
 axi:
-  commit: v0.7.0
+  commit: v0.7.1
