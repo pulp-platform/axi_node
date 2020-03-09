@@ -27,17 +27,14 @@ module axi_node_arbiter #(
   input  logic                                oup_ready_i
 );
 
-  typedef struct packed {
-    logic [AUX_WIDTH-1:0] aux;
-    logic [ID_WIDTH-1:0]  id;
-  } axi_meta_t;
+  typedef logic [AUX_WIDTH+ID_WIDTH-1:0] axi_meta_t;
 
   axi_meta_t [N_MASTER-1:0] inp_meta;
   axi_meta_t oup_meta;
 
   for (genvar i = 0; i < N_MASTER; i++) begin: gen_inp_meta
-    assign inp_meta[i].aux = inp_aux_i[i];
-    assign inp_meta[i].id = inp_id_i[i];
+    assign inp_meta[i][AUX_WIDTH+ID_WIDTH-1:ID_WIDTH] = inp_aux_i[i];
+    assign inp_meta[i][ID_WIDTH-1:0] = inp_id_i[i];
   end
 
   stream_arbiter #(
@@ -54,8 +51,8 @@ module axi_node_arbiter #(
     .oup_ready_i  (oup_ready_i)
   );
 
-  assign oup_id_o = oup_meta.id;
-  assign oup_aux_o = oup_meta.aux;
+  assign oup_id_o = oup_meta[ID_WIDTH-1:0];
+  assign oup_aux_o = oup_meta[AUX_WIDTH+ID_WIDTH-1:ID_WIDTH];
 
 // pragma translate_off
 `ifndef VERILATOR
