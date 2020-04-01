@@ -33,8 +33,8 @@ module axi_node_wrap_with_slices #(
     input logic      clk,
     input logic      rst_n,
     input logic      test_en_i,
-    AXI_BUS.Slave    slave  [NB_SLAVE-1:0],
-    AXI_BUS.Master   master [NB_MASTER-1:0],
+    AXI_BUS    slave  [NB_SLAVE-1:0],
+    AXI_BUS    master [NB_MASTER-1:0],
     // Memory map
     input  logic [NB_REGION-1:0][NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0] start_addr_i,
     input  logic [NB_REGION-1:0][NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0] end_addr_i,
